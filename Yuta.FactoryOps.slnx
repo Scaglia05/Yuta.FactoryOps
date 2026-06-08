@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Yuta.FactoryOps/Yuta.FactoryOps.Client/Yuta.FactoryOps.Client.csproj" />
+  <Project Path="Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.csproj" />
+</Solution>
