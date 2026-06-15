@@ -1,5 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Yuta.FactoryOps.Data;
 using Yuta.FactoryOps.Models;
@@ -11,10 +16,13 @@ namespace Yuta.FactoryOps.Repositories
     public class AuthRepository : IAuthRepository
     {
         private readonly FactoryDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AuthRepository(FactoryDbContext context)
+        // Injetamos o IConfiguration para ler a chave secreta do appsettings.json
+        public AuthRepository(FactoryDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<object> ExecutarLoginEmailAsync(Login payload)
@@ -41,10 +49,13 @@ namespace Yuta.FactoryOps.Repositories
                 return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
             }
 
+            // GERAÇÃO DO TOKEN REAL
+            string tokenReal = GerarTokenJwtReal(usuario);
+
             return new
             {
                 Sucesso = true,
-                Token = "JWT_TOKEN_TEMPORARIO_GERADO",
+                Token = tokenReal,
                 Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
             };
         }
@@ -68,10 +79,13 @@ namespace Yuta.FactoryOps.Repositories
                 return new { Sucesso = false, Mensagem = "Erro ao processar login com o Google. Verifique o provisionamento da empresa." };
             }
 
+            // GERAÇÃO DO TOKEN REAL VIA GOOGLE
+            string tokenReal = GerarTokenJwtReal(usuario);
+
             return new
             {
                 Sucesso = true,
-                Token = "JWT_TOKEN_INTERNO_YUTA_VIA_GOOGLE",
+                Token = tokenReal,
                 Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
             };
         }
@@ -104,7 +118,6 @@ namespace Yuta.FactoryOps.Repositories
                 Role = payload.Role
             };
 
-            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
             if (string.IsNullOrWhiteSpace(payload.Password)) throw new ArgumentException("A senha não pode ser vazia.", nameof(payload.Password));
 
             usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(payload.Password);
@@ -187,6 +200,37 @@ namespace Yuta.FactoryOps.Repositories
             _context.Usuarios.Add(novoUsuario);
             await _context.SaveChangesAsync();
             return novoUsuario;
+        }
+
+        // MÉTODO PRIVADO AUXILIAR: Centraliza a montagem criptográfica do JWT
+        private string GerarTokenJwtReal(Usuario usuario)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            // Busca a chave secreta idêntica à do Program.cs
+            var jwtKey = _configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
+            var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                // Injeta as Claims (Metadados que o Blazor Client e os serviços vão ler para isolar dados)
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                    new Claim(ClaimTypes.Name, usuario.Nome),
+                    new Claim(ClaimTypes.Email, usuario.Email),
+                    new Claim(ClaimTypes.Role, usuario.Role),
+                    new Claim("EmpresaId", usuario.EmpresaId.ToString()) // Multi-Tenancy Claim
+                }),
+                Expires = DateTime.UtcNow.AddHours(8), // Token expira no fim do turno de 8h
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(keyBytes),
+                    SecurityAlgorithms.HmacSha256Signature
+                )
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }
