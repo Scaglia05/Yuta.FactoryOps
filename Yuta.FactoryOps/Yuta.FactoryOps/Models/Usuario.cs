@@ -15,4 +15,9 @@ namespace Yuta.FactoryOps.Models
         public string Role { get; set; } = "Operador";
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
     }
+
+    public class UsuarioAPI 
+    { 
+        public const string CriarUsuario = nameof(CriarUsuario);
+    }
 }

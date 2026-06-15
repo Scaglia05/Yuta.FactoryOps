@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Yuta.FactoryOps.Data;
 using Yuta.FactoryOps.Models;
+using Yuta.FactoryOps.Models.DTO;
 using Yuta.FactoryOps.Repositories.Interfaces;
 
 namespace Yuta.FactoryOps.Repositories
@@ -16,6 +17,75 @@ namespace Yuta.FactoryOps.Repositories
             _context = context;
         }
 
+        public async Task<object> ExecutarLoginEmailAsync(Login payload)
+        {
+            if (payload == null || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Password))
+            {
+                return new { Sucesso = false, Mensagem = "E-mail e senha são obrigatórios." };
+            }
+
+            var usuario = await ObterPorEmailAsync(payload.Email);
+            if (usuario == null)
+            {
+                return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
+            }
+
+            if (!usuario.EmailConfirmado)
+            {
+                return new { Sucesso = false, Status = 403, Mensagem = "Por favor, confirme seu e-mail antes de acessar a plataforma." };
+            }
+
+            var senhaValida = await ValidarSenhaAsync(usuario, payload.Password);
+            if (!senhaValida)
+            {
+                return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
+            }
+
+            return new
+            {
+                Sucesso = true,
+                Token = "JWT_TOKEN_TEMPORARIO_GERADO",
+                Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
+            };
+        }
+
+        public async Task<object> ExecutarLoginGoogleAsync(Login payload)
+        {
+            if (payload == null || string.IsNullOrWhiteSpace(payload.IdToken))
+            {
+                return new { Sucesso = false, Mensagem = "Token do Google inválido." };
+            }
+
+            // TODO: Integrar Google.Apis.Auth para abrir o IdToken real
+            string emailGoogle = "operador.exemplo@empresa.com";
+            string nomeGoogle = "Operador Yuta";
+            string fotoGoogle = "https://lh3.googleusercontent.com/...";
+
+            var usuario = await ProcessarLoginGoogleAsync(emailGoogle, nomeGoogle, fotoGoogle);
+
+            if (usuario == null)
+            {
+                return new { Sucesso = false, Mensagem = "Erro ao processar login com o Google. Verifique o provisionamento da empresa." };
+            }
+
+            return new
+            {
+                Sucesso = true,
+                Token = "JWT_TOKEN_INTERNO_YUTA_VIA_GOOGLE",
+                Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
+            };
+        }
+
+        public async Task<object> ExecutarGeracaoTokenEmailAsync(string email)
+        {
+            var usuario = await ObterPorEmailAsync(email);
+            if (usuario == null)
+                return new { Sucesso = false, Mensagem = "Usuário não encontrado." };
+
+            var token = await GerarTokenConfirmacaoEmailAsync(usuario);
+            return new { Sucesso = true, Token = token };
+        }
+
         public async Task<Usuario?> ObterPorEmailAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email)) return null;
@@ -24,13 +94,20 @@ namespace Yuta.FactoryOps.Repositories
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower().Trim());
         }
 
-        public async Task<Usuario> CriarUsuarioAsync(Usuario usuario, string password)
+        public async Task<Usuario> CriarUsuarioAsync(RegistroUsuarioDto payload)
         {
-            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("A senha não pode ser vazia.", nameof(password));
+            var usuario = new Usuario
+            {
+                Email = payload.Email,
+                Nome = payload.Nome,
+                EmpresaId = payload.EmpresaId,
+                Role = payload.Role
+            };
 
-            // Gera o Hash da senha usando Salt interno do BCrypt (Segurança nível bancário)
-            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
+            if (string.IsNullOrWhiteSpace(payload.Password)) throw new ArgumentException("A senha não pode ser vazia.", nameof(payload.Password));
+
+            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(payload.Password);
             usuario.ProvedorAutenticacao = "Email";
             usuario.DataCriacao = DateTime.UtcNow;
 
@@ -44,7 +121,6 @@ namespace Yuta.FactoryOps.Repositories
             if (usuario == null || string.IsNullOrEmpty(usuario.PasswordHash) || string.IsNullOrWhiteSpace(password))
                 return false;
 
-            // O BCrypt descriptografa internamente o hash e valida se a senha bate
             return BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash);
         }
 
@@ -52,10 +128,7 @@ namespace Yuta.FactoryOps.Repositories
         {
             if (usuario == null) throw new ArgumentNullException(nameof(usuario));
 
-            // Cria um identificador único universal codificado em Base64 para encurtar o link do e-mail
             string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
-            // TODO: Salvar esse token em uma tabela dedicada 'TokensSeguranca' com tempo de expiração
             return await Task.FromResult(token);
         }
 
@@ -84,7 +157,7 @@ namespace Yuta.FactoryOps.Repositories
                 if (usuario.ProvedorAutenticacao != "Google")
                 {
                     usuario.ProvedorAutenticacao = "Google";
-                    usuario.EmailConfirmado = true; 
+                    usuario.EmailConfirmado = true;
                     if (!string.IsNullOrEmpty(fotoUrl)) usuario.FotoUrl = fotoUrl;
 
                     _context.Usuarios.Update(usuario);
