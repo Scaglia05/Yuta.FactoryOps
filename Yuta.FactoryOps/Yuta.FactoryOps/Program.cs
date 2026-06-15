@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization; // Adicionado para reconhecer o AuthenticationStateProvider
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -6,12 +7,17 @@ using Yuta.FactoryOps.Components;
 using Yuta.FactoryOps.Data;
 using Yuta.FactoryOps.Repositories;
 using Yuta.FactoryOps.Repositories.Interfaces;
+using Yuta.FactoryOps.Client.Security; // Adicionado para o Server achar a classe que está no Client
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO ---
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
+
+// Injeções de Estado de Autenticação do Blazor (Colocadas no lugar certo antes do Build)
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, ProvedorAutenticacaoJwt>();
 
 // --- 2. INJEÇÕES DE INFRAESTRUTURA DA YUTA ---
 // Configura a conexão com o banco PostgreSQL (Supabase) buscando a string do appsettings.json
@@ -49,6 +55,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// AQUI É A FRONTEIRA: Tudo que é builder.Services fica ACIMA desta linha
 var app = builder.Build();
 
 // --- 4. CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARES) ---
