@@ -1,72 +1,96 @@
-﻿@using Yuta.FactoryOps.Client.Rotas
+﻿@page "/"
+@page "/login"
+
+@using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Authorization
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using Yuta.FactoryOps.Client.Rotas
 @using Yuta.FactoryOps.Client.Security
+@using Yuta.FactoryOps.Application.DTOs
 
-@attribute [Route(ConstantesRotas.Login)]
 @attribute [AllowAnonymous]
 @layout EmptyLayout
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ProvedorAutenticacaoJwt ProvedorAuth
+@inject IJSRuntime JS
 
 <PageTitle>YUTA - Login</PageTitle>
+@if (renderizarFormulario)
+{
+    <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
+    </EditForm>
+}
+else
+{
+    <div class="yuta-login-container">
+        <div class="yuta-login-card">
 
-<div class="yuta-login-container">
-    <div class="yuta-login-card">
+            <div class="yuta-brand">
+                <h1>YUTA</h1>
+                <p>Factory Operation System</p>
+            </div>
 
-        <div class="yuta-brand">
-            <h1>YUTA</h1>
-            <p>Factory Operation System</p>
-        </div>
+            <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
+                <DataAnnotationsValidator />
 
-        <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
-            <DataAnnotationsValidator />
+                @if (!string.IsNullOrEmpty(mensagemErro))
+                {
+                    <div class="yuta-alert">
+                        <span>⚠️</span> @mensagemErro
+                    </div>
+                }
 
-            @if (!string.IsNullOrEmpty(mensagemErro))
-            {
-                <div class="yuta-alert">
-                    <span>⚠️</span> @mensagemErro
+                <div class="form-group">
+                    <label for="email">Usuário / E-mail</label>
+                    <InputText id="email" class="input-control" @bind-Value="loginModel.Email" placeholder="nome@yuta.com" />
+                    <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
                 </div>
-            }
 
-            <div class="form-group">
-                <label for="email">Usuário / E-mail</label>
-                <InputText id="email" class="input-control" @bind-Value="loginModel.Email" placeholder="nome@yuta.com" />
-                <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
-            </div>
+                <div class="form-group">
+                    <label for="password">Senha de Acesso</label>
+                    <InputText id="password" type="password" class="input-control" @bind-Value="loginModel.Senha" placeholder="••••••••" />
+                    <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
+                </div>
 
-            <div class="form-group">
-                <label for="password">Senha de Acesso</label>
-                <InputText id="password" type="password" class="input-control" @bind-Value="loginModel.Senha" placeholder="••••••••" />
-                <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
-            </div>
+                <button type="submit" class="btn-yuta-submit" disabled="@isCarregando">
+                    @if (isCarregando)
+                    {
+                        <div class="spinner"></div> <span>Autenticando na Malha...</span>
+                    }
+                    else
+                    {
+                        <span>CONECTAR AO SISTEMA</span>
+                    }
+                </button>
+            </EditForm>
 
-            <button type="submit" class="btn-yuta-submit" disabled="@estaCarregando">
-                @if (estaCarregando)
-                {
-                    <div class="spinner"></div> <span>Autenticando na Malha...</span>
-                }
-                else
-                {
-                    <span>CONECTAR AO SISTEMA</span>
-                }
-            </button>
-        </EditForm>
-
+        </div>
     </div>
-</div>
+}
 
 @code {
-    private LoginRequest loginModel = new();
-    private string? mensagemErro;
-    private bool estaCarregando = false;
+    private LoginRequest loginModel { get; set; } = new();
+    private string? mensagemErro { get; set; }
+    private bool isCarregando { get; set; } = false;
+    private bool renderizarFormulario { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            renderizarFormulario = true;
+            StateHasChanged();
+        }
+    }
 
     private async Task ExecutarLogin()
     {
-        estaCarregando = true;
+        if (!renderizarFormulario) return;
+
+        isCarregando = true;
         mensagemErro = null;
 
         try
@@ -92,28 +116,13 @@
                 mensagemErro = "Credenciais incorretas ou operador não ativo.";
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             mensagemErro = "Falha de comunicação com o servidor de manufatura.";
         }
         finally
         {
-            estaCarregando = false;
+            isCarregando = false;
         }
-    }
-
-    public class LoginRequest
-    {
-        [Required(ErrorMessage = "O identificador é obrigatório.")]
-        [EmailAddress(ErrorMessage = "Insira um formato de e-mail válido.")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "A senha é obrigatória.")]
-        public string Senha { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
     }
 }

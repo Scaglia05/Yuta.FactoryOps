@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Components.Authorization; // Adicionado para reconhecer o AuthenticationStateProvider
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Syncfusion.Blazor;
 using System.Text;
-using Yuta.FactoryOps.Components;
 using Yuta.FactoryOps.Data;
 using Yuta.FactoryOps.Repositories;
 using Yuta.FactoryOps.Repositories.Interfaces;
-using Yuta.FactoryOps.Client.Security; // Adicionado para o Server achar a classe que está no Client
+using Yuta.FactoryOps.Server.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,28 +15,34 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
-// Registra o HttpClient para o Server conseguir renderizar componentes do Client sem quebrar
-builder.Services.AddScoped(sp => new HttpClient());
+builder.Services.AddSyncfusionBlazor();
 
-// Injeções de Estado de Autenticação do Blazor (Apenas uma de cada!)
+// Registra o HttpClient para o motor de renderização do servidor
+// Altere de http://localhost:5000 para a porta real do seu console:
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:7183")
+});
+
+// Como deve ficar:
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<AuthenticationStateProvider, ProvedorAutenticacaoJwt>();
-builder.Services.AddScoped<ProvedorAutenticacaoJwt>(); // Permite injetar a classe concreta no Login.razor
+
+// Registra o provedor de estado de autenticação padrão do ASP.NET Core para servidores
+builder.Services.AddScoped<AuthenticationStateProvider, Microsoft.AspNetCore.Components.Server.ServerAuthenticationStateProvider>();
 
 // --- 2. INJEÇÕES DE INFRAESTRUTURA DA YUTA ---
-// Configura a conexão com o banco PostgreSQL (Supabase) buscando a string do appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FactoryDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Injeta o Repositório de Autenticação na arquitetura do sistema
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
-// Adiciona o suporte para os Controllers de API (Essencial para receber as requisições de login)
+// ADICIONE ESTA LINHA AQUI NO SERVER:
+builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
+
 builder.Services.AddControllers();
 
 // --- 3. CONFIGURAÇÃO DE SEGURANÇA (JWT) ---
-// Recupera a chave secreta de criptografia para assinar os tokens
 var jwtKey = builder.Configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
 var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
@@ -47,7 +53,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Defina como true quando subir para produção com SSL
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -59,7 +65,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// AQUI É A FRONTEIRA: Tudo que é builder.Services fica ACIMA desta linha
 var app = builder.Build();
 
 // --- 4. CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARES) ---
@@ -73,16 +78,16 @@ else
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
-// Gerenciamento de segurança contra ataques de falsificação de requisições
+// ORDEM CRUCIAL DA ENGRENAGEM BLAZOR:
+app.UseBlazorFrameworkFiles(); // 1º: Mapeia os arquivos internos do Blazor Client (.wasm, etc)
+app.UseStaticFiles();          // 2º: Serve os arquivos físicos da wwwroot (CSS, JS, Imagens)
+
 app.UseAntiforgery();
 
-app.MapStaticAssets();
-
 // --- 5. MIDDLEWARES DE AUTENTICAÇÃO ---
-// ATENÇÃO: Eles precisam vir OBRIGATORIAMENTE antes do MapControllers e das rotas Blazor
 app.UseAuthentication();
 app.UseAuthorization();
 

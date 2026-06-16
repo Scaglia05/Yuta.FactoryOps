@@ -1,10 +1,16 @@
-﻿namespace Yuta.FactoryOps.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Yuta.FactoryOps.Models
 {
     public class Login
     {
-        public string IdToken { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "O identificador é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Insira um formato de e-mail válido.")]
         public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        [Required(ErrorMessage = "A senha é obrigatória.")]
+        public string Senha { get; set; } = string.Empty;
     }
 
     public class LoginAPI

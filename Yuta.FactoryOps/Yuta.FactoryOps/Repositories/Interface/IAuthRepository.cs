@@ -1,17 +1,15 @@
 ﻿using System.Threading.Tasks;
 using Yuta.FactoryOps.Models;
 using Yuta.FactoryOps.Models.DTO;
+using Yuta.FactoryOps.Application.DTOs; 
 
 namespace Yuta.FactoryOps.Repositories.Interfaces
 {
     public interface IAuthRepository
     {
-        // Métodos de execução direta usados pelo Controller
-        Task<object> ExecutarLoginEmailAsync(Login payload);
-        Task<object> ExecutarLoginGoogleAsync(Login payload);
+        Task<object> ExecutarLoginEmailAsync(LoginRequest payload); 
+        Task<object> ExecutarLoginGoogleAsync(LoginRequest payload);
         Task<object> ExecutarGeracaoTokenEmailAsync(string email);
-
-        // Métodos granulares da engrenagem
         Task<Usuario?> ObterPorEmailAsync(string email);
         Task<Usuario> CriarUsuarioAsync(RegistroUsuarioDto payload);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);

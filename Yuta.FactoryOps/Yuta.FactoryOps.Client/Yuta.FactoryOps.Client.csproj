@@ -11,4 +11,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.*" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Yuta.FactoryOps.Application\Yuta.FactoryOps.Application.csproj" />
+	</ItemGroup>
+
 </Project>

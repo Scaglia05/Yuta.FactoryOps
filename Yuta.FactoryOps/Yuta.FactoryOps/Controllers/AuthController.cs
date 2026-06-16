@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Yuta.FactoryOps.Models;
 using Yuta.FactoryOps.Models.DTO;
 using Yuta.FactoryOps.Repositories.Interfaces;
+using Yuta.FactoryOps.Application.DTOs; 
 
 namespace Yuta.FactoryOps.Controllers
 {
@@ -18,14 +19,14 @@ namespace Yuta.FactoryOps.Controllers
         }
 
         [HttpPost(LoginAPI.LoginEmailAPI)]
-        public async Task<IActionResult> LoginComEmail([FromBody] Login payload)
+        public async Task<IActionResult> LoginComEmail([FromBody] LoginRequest payload) // Corrigido para a nova arquitetura
         {
             var result = await _authRepository.ExecutarLoginEmailAsync(payload);
             return Ok(result);
         }
 
         [HttpPost(LoginAPI.LoginGooglelAPI)]
-        public async Task<IActionResult> LoginComGoogle([FromBody] Login payload)
+        public async Task<IActionResult> LoginComGoogle([FromBody] LoginRequest payload) // Corrigido para a nova arquitetura
         {
             var result = await _authRepository.ExecutarLoginGoogleAsync(payload);
             return Ok(result);

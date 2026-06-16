@@ -10,6 +10,7 @@ using Yuta.FactoryOps.Data;
 using Yuta.FactoryOps.Models;
 using Yuta.FactoryOps.Models.DTO;
 using Yuta.FactoryOps.Repositories.Interfaces;
+using Yuta.FactoryOps.Application.DTOs; // Puxa os novos DTOs da camada Application
 
 namespace Yuta.FactoryOps.Repositories
 {
@@ -18,16 +19,16 @@ namespace Yuta.FactoryOps.Repositories
         private readonly FactoryDbContext _context;
         private readonly IConfiguration _configuration;
 
-        // Injetamos o IConfiguration para ler a chave secreta do appsettings.json
         public AuthRepository(FactoryDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
         }
 
-        public async Task<object> ExecutarLoginEmailAsync(Login payload)
+        public async Task<object> ExecutarLoginEmailAsync(LoginRequest payload)
         {
-            if (payload == null || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Password))
+            // Ajustado para checar payload.Senha em vez do antigo .Password
+            if (payload == null || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Senha))
             {
                 return new { Sucesso = false, Mensagem = "E-mail e senha são obrigatórios." };
             }
@@ -43,13 +44,13 @@ namespace Yuta.FactoryOps.Repositories
                 return new { Sucesso = false, Status = 403, Mensagem = "Por favor, confirme seu e-mail antes de acessar a plataforma." };
             }
 
-            var senhaValida = await ValidarSenhaAsync(usuario, payload.Password);
+            // Ajustado para usar payload.Senha
+            var senhaValida = await ValidarSenhaAsync(usuario, payload.Senha);
             if (!senhaValida)
             {
                 return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
             }
 
-            // GERAÇÃO DO TOKEN REAL
             string tokenReal = GerarTokenJwtReal(usuario);
 
             return new
@@ -60,9 +61,11 @@ namespace Yuta.FactoryOps.Repositories
             };
         }
 
-        public async Task<object> ExecutarLoginGoogleAsync(Login payload)
+        // Alterado o parâmetro de 'Login' para 'LoginRequest'
+        // Nota: Mantenha a checagem que você já tinha planejado para quando acoplar o Google OAuth
+        public async Task<object> ExecutarLoginGoogleAsync(LoginRequest payload)
         {
-            if (payload == null || string.IsNullOrWhiteSpace(payload.IdToken))
+            if (payload == null)
             {
                 return new { Sucesso = false, Mensagem = "Token do Google inválido." };
             }
@@ -79,7 +82,6 @@ namespace Yuta.FactoryOps.Repositories
                 return new { Sucesso = false, Mensagem = "Erro ao processar login com o Google. Verifique o provisionamento da empresa." };
             }
 
-            // GERAÇÃO DO TOKEN REAL VIA GOOGLE
             string tokenReal = GerarTokenJwtReal(usuario);
 
             return new
@@ -202,27 +204,24 @@ namespace Yuta.FactoryOps.Repositories
             return novoUsuario;
         }
 
-        // MÉTODO PRIVADO AUXILIAR: Centraliza a montagem criptográfica do JWT
         private string GerarTokenJwtReal(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            // Busca a chave secreta idêntica à do Program.cs
             var jwtKey = _configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
             var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                // Injeta as Claims (Metadados que o Blazor Client e os serviços vão ler para isolar dados)
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
                     new Claim(ClaimTypes.Name, usuario.Nome),
                     new Claim(ClaimTypes.Email, usuario.Email),
                     new Claim(ClaimTypes.Role, usuario.Role),
-                    new Claim("EmpresaId", usuario.EmpresaId.ToString()) // Multi-Tenancy Claim
+                    new Claim("EmpresaId", usuario.EmpresaId.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddHours(8), // Token expira no fim do turno de 8h
+                Expires = DateTime.UtcNow.AddHours(8),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(keyBytes),
                     SecurityAlgorithms.HmacSha256Signature
