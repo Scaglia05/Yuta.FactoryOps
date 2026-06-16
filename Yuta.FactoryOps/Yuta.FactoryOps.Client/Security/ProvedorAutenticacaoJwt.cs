@@ -26,17 +26,26 @@ namespace Yuta.FactoryOps.Client.Security
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
-
-            if (string.IsNullOrWhiteSpace(token))
+            // PROTEÇÃO: O try-catch evita que o servidor quebre ao tentar ler o localStorage do navegador antes da hora
+            try
             {
-                LimparCabecalhoHttp();
+                var token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    LimparCabecalhoHttp();
+                    return _anonimo;
+                }
+
+                _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+            }
+            catch (Exception)
+            {
+                // Se rodar no servidor (onde o JS Interop ainda não existe), ele simplesmente ignora e retorna anônimo de forma segura
                 return _anonimo;
             }
-
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
         }
 
         public async Task MarcarComoAutenticado(string token)

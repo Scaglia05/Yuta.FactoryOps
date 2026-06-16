@@ -16,7 +16,22 @@ namespace Yuta.FactoryOps.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(FactoryDbContext).Assembly);
+            modelBuilder.Entity<Empresa>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Cnpj).IsUnique();
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.HasKey(u => u.Id);
+                entity.HasIndex(u => u.Email).IsUnique();
+
+                entity.HasOne<Empresa>()
+                      .WithMany()
+                      .HasForeignKey(u => u.EmpresaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

@@ -1,6 +1,24 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using System.Reflection
+@using Yuta.FactoryOps.Client.Rotas
+
+<Router AppAssembly="@typeof(Program).Assembly"
+        AdditionalAssemblies="ObterAssembliesComRotasTratadas()">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <RouteView RouteData="routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        <PageTitle>Não Encontrado</PageTitle>
+        <LayoutView Layout="@typeof(Layout.MainLayout)">
+            <p role="alert">Desculpe, não há nada neste endereço de manufatura.</p>
+        </LayoutView>
+    </NotFound>
 </Router>
+
+@code {
+    private IEnumerable<Assembly> ObterAssembliesComRotasTratadas()
+    {
+        return new[] { typeof(Routes).Assembly };
+    }
+}

@@ -1,0 +1,12 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components
+@using Yuta.FactoryOps.Client.Rotas
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Redireciona para o nome exato da constante que o roteador agora entende
+        Navigation.NavigateTo(ConstantesRotas.Login, replace: true);
+    }
+}

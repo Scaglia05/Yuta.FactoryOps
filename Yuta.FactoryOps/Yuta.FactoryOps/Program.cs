@@ -15,9 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
-// Injeções de Estado de Autenticação do Blazor (Colocadas no lugar certo antes do Build)
+// Registra o HttpClient para o Server conseguir renderizar componentes do Client sem quebrar
+builder.Services.AddScoped(sp => new HttpClient());
+
+// Injeções de Estado de Autenticação do Blazor (Apenas uma de cada!)
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ProvedorAutenticacaoJwt>();
+builder.Services.AddScoped<ProvedorAutenticacaoJwt>(); // Permite injetar a classe concreta no Login.razor
 
 // --- 2. INJEÇÕES DE INFRAESTRUTURA DA YUTA ---
 // Configura a conexão com o banco PostgreSQL (Supabase) buscando a string do appsettings.json
