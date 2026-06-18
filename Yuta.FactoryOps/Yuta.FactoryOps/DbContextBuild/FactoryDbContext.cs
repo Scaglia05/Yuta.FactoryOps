@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Yuta.FactoryOps.Models; 
+using Yuta.FactoryOps.Domain.Entities;
 
-namespace Yuta.FactoryOps.Data
+namespace Yuta.FactoryOps.Server.DbContextBuild
 {
     public class FactoryDbContext : DbContext 
     {

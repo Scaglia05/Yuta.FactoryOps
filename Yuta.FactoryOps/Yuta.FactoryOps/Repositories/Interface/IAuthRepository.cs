@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Yuta.FactoryOps.Models;
-using Yuta.FactoryOps.Models.DTO;
-using Yuta.FactoryOps.Application.DTOs; 
+using Yuta.FactoryOps.Application.DTOs;
+using Yuta.FactoryOps.Domain.DTOs;
+using Yuta.FactoryOps.Domain.Entities;
 
-namespace Yuta.FactoryOps.Repositories.Interfaces
+namespace Yuta.FactoryOps.Server.Repositories.Interface
 {
     public interface IAuthRepository
     {

@@ -1,4 +1,4 @@
-﻿namespace Yuta.FactoryOps.Models.DTO
+﻿namespace Yuta.FactoryOps.Domain.DTOs
 {
     public class RegistroUsuarioDto
     {

@@ -6,13 +6,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Yuta.FactoryOps.Data;
-using Yuta.FactoryOps.Models;
-using Yuta.FactoryOps.Models.DTO;
-using Yuta.FactoryOps.Repositories.Interfaces;
-using Yuta.FactoryOps.Application.DTOs; // Puxa os novos DTOs da camada Application
+using Yuta.FactoryOps.Application.DTOs;
+using Yuta.FactoryOps.Server.Repositories.Interface;
+using Yuta.FactoryOps.Server.DbContextBuild;
+using Yuta.FactoryOps.Domain.Entities;
+using Yuta.FactoryOps.Domain.DTOs;
 
-namespace Yuta.FactoryOps.Repositories
+namespace Yuta.FactoryOps.Server.Repositories
 {
     public class AuthRepository : IAuthRepository
     {

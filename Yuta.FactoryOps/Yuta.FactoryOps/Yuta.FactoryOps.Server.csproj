@@ -19,6 +19,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Yuta.FactoryOps.Application\Yuta.FactoryOps.Application.csproj" />
+		<ProjectReference Include="..\..\Yuta.FactoryOps.Domain\Yuta.FactoryOps.Domain.csproj" />
 		<ProjectReference Include="..\Yuta.FactoryOps.Client\Yuta.FactoryOps.Client.csproj" />
 	</ItemGroup>
 

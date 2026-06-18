@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Syncfusion.Blazor;
 using System.Text;
-using Yuta.FactoryOps.Data;
-using Yuta.FactoryOps.Repositories;
-using Yuta.FactoryOps.Repositories.Interfaces;
 using Yuta.FactoryOps.Server.Components;
+using Yuta.FactoryOps.Server.DbContextBuild;
+using Yuta.FactoryOps.Server.Repositories;
+using Yuta.FactoryOps.Server.Repositories.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 

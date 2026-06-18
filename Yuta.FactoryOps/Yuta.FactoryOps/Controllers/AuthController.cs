@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Yuta.FactoryOps.Models;
-using Yuta.FactoryOps.Models.DTO;
-using Yuta.FactoryOps.Repositories.Interfaces;
-using Yuta.FactoryOps.Application.DTOs; 
+using Yuta.FactoryOps.Application.DTOs;
+using Yuta.FactoryOps.Domain.Entities;
+using Yuta.FactoryOps.Server.Repositories.Interface;
+using Yuta.FactoryOps.Domain.DTOs;
 
-namespace Yuta.FactoryOps.Controllers
+namespace Yuta.FactoryOps.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

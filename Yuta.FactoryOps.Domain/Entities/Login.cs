@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Yuta.FactoryOps.Models
+namespace Yuta.FactoryOps.Domain.Entities
 {
     public class Login
     {

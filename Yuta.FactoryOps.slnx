@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="D:/YutaFactoryOpsWeb/Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Client/Yuta.FactoryOps.Client.csproj" />
   <Project Path="Yuta.FactoryOps.Application/Yuta.FactoryOps.Application.csproj" Id="80eaf0b5-e9e9-4e69-845c-f0079b35d1e4" />
+  <Project Path="Yuta.FactoryOps.Domain/Yuta.FactoryOps.Domain.csproj" Id="a5f7e452-e73d-4104-a058-48e1208bbaac" />
   <Project Path="Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj" />
 </Solution>
