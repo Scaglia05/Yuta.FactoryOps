@@ -6,10 +6,12 @@ namespace Yuta.FactoryOps.Domain.Entities
     {
         public string Token { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "O identificador é obrigatório.")]
-        [EmailAddress(ErrorMessage = "Insira um formato de e-mail válido.")]
+        [Required(ErrorMessage = "O e-mail de operador é obrigatório.")]
+        [EmailAddress(ErrorMessage = "Digite um endereço de e-mail industrial válido.")]
         public string Email { get; set; } = string.Empty;
-        [Required(ErrorMessage = "A senha é obrigatória.")]
+
+        [Required(ErrorMessage = "A senha de acesso é obrigatória.")]
+        [MinLength(6, ErrorMessage = "A senha deve conter no mínimo 6 caracteres.")]
         public string Senha { get; set; } = string.Empty;
     }
 

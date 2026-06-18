@@ -18,21 +18,17 @@
 @inject IJSRuntime JS
 
 <PageTitle>YUTA - Login</PageTitle>
-@if (renderizarFormulario)
-{
-    <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
-    </EditForm>
-}
-else
-{
-    <div class="yuta-login-container">
-        <div class="yuta-login-card">
 
-            <div class="yuta-brand">
-                <h1>YUTA</h1>
-                <p>Factory Operation System</p>
-            </div>
+<div class="yuta-login-container">
+    <div class="yuta-login-card">
 
+        <div class="yuta-brand">
+            <h1>YUTA</h1>
+            <p>Factory Operation System</p>
+        </div>
+
+        @if (renderizarFormulario)
+        {
             <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
                 <DataAnnotationsValidator />
 
@@ -43,16 +39,20 @@ else
                     </div>
                 }
 
-                <div class="form-group">
-                    <label for="email">Usuário / E-mail</label>
-                    <InputText id="email" class="input-control" @bind-Value="loginModel.Email" placeholder="nome@yuta.com" />
-                    <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
-                </div>
+                <div class="yuta-form-fields-box">
 
-                <div class="form-group">
-                    <label for="password">Senha de Acesso</label>
-                    <InputText id="password" type="password" class="input-control" @bind-Value="loginModel.Senha" placeholder="••••••••" />
-                    <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" style="font-size: 0.8rem; color: #ff7b72; margin-top: 4px; display:block;" />
+                    <div class="form-group">
+                        <label for="email">Usuário / E-mail</label>
+                        <InputText id="email" class="input-control" @bind-Value="loginModel.Email" placeholder="nome@yuta.com" />
+                        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Senha de Acesso</label>
+                        <InputText id="password" type="password" class="input-control" @bind-Value="loginModel.Senha" placeholder="••••••••" />
+                        <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" />
+                    </div>
+
                 </div>
 
                 <button type="submit" class="btn-yuta-submit" disabled="@isCarregando">
@@ -66,10 +66,17 @@ else
                     }
                 </button>
             </EditForm>
+        }
+        else
+        {
+            <div style="text-align:center; padding: 20px; color: #a29bfe;">
+                <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+                Sincronizando terminais...
+            </div>
+        }
 
-        </div>
     </div>
-}
+</div>
 
 @code {
     private LoginRequest loginModel { get; set; } = new();
@@ -77,13 +84,9 @@ else
     private bool isCarregando { get; set; } = false;
     private bool renderizarFormulario { get; set; } = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
-        {
-            renderizarFormulario = true;
-            StateHasChanged();
-        }
+        renderizarFormulario = true;
     }
 
     private async Task ExecutarLogin()

@@ -14,7 +14,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.12" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-		<PackageReference Include="Syncfusion.Blazor.Core" Version="33.2.12" />
+		<PackageReference Include="Syncfusion.Blazor.Core" Version="33.2.13" />
 	</ItemGroup>
 
 	<ItemGroup>

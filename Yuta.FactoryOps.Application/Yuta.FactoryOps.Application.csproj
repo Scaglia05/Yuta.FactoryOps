@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Yuta.FactoryOps.Domain\Yuta.FactoryOps.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

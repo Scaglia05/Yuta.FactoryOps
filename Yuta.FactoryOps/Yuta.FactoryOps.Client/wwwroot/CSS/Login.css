@@ -1,6 +1,5 @@
 ﻿/* Força o reset de margens e preenchimentos do Blazor nesta tela */
-:host,
-.yuta-login-container {
+:host, .yuta-login-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -12,8 +11,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Fundo escuro com transição para um roxo profundo corporativo */
-    background: radial-gradient(circle at 20% 30%, #1e1233 0%, #0a0514 100%);
+    background: radial-gradient(circle at 20% 30%, #170e26 0%, #07030e 100%);
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #f0f3f6;
     z-index: 9999;
@@ -21,23 +19,17 @@
 
 /* Card do Formulário (Visual vidro fumê com detalhes roxos) */
 .yuta-login-card {
-    background: rgba(20, 15, 30, 0.75);
+    background: rgba(14, 10, 22, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(138, 75, 247, 0.25);
-    border-radius: 12px;
+    border: 1px solid rgba(138, 75, 247, 0.2);
+    border-radius: 16px;
     padding: 40px;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
     box-sizing: border-box;
 }
-
-    .yuta-login-card:hover {
-        border-color: #a855f7; /* Brilho Neon Roxo ao passar o mouse */
-        box-shadow: 0 20px 50px rgba(168, 85, 247, 0.2);
-    }
 
 /* Header da Marca (YUTA) */
 .yuta-brand {
@@ -46,80 +38,101 @@
 }
 
     .yuta-brand h1 {
-        font-size: 2.2rem;
-        font-weight: 800;
-        letter-spacing: 3px;
-        /* Degradê do Roxo Elétrico para o Lilás Tecnológico */
-        background: linear-gradient(45deg, #a855f7, #e9d5ff);
+        font-size: 2.4rem;
+        font-weight: 900;
+        letter-spacing: 5px;
+        background: linear-gradient(45deg, #b794f4, #e9d5ff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
     }
 
     .yuta-brand p {
-        color: #a29bfe;
-        font-size: 0.82rem;
+        color: #837aa9;
+        font-size: 0.8rem;
         margin-top: 8px;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
+        letter-spacing: 2px;
+        font-weight: 600;
     }
 
-/* Grupos de Input */
-.form-group {
+/* NOVO: Quadro que identifica e agrupa as caixas de texto */
+.yuta-form-fields-box {
+    background-color: #09060e;
+    border: 1px solid #1f1633;
+    border-radius: 10px;
+    padding: 24px 20px 6px 20px;
     margin-bottom: 24px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Grupos de Input internos ao Quadro */
+.form-group {
+    margin-bottom: 20px;
     text-align: left;
+    display: flex;
+    flex-direction: column;
 }
 
     .form-group label {
         display: block;
         font-size: 0.85rem;
-        color: #e2d6ff;
+        color: #a398cc;
         margin-bottom: 8px;
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: 0.5px;
     }
 
+/* Controle Nativo Blazor Estilizado (Sem falhas!) */
 .input-control {
     width: 100%;
     padding: 12px 16px;
-    background: #0f0b18;
-    border: 1px solid #3c2a5c;
+    background: #140f20;
+    border: 1px solid #2d2244;
     border-radius: 6px;
-    color: #f0f3f6;
-    font-size: 1rem;
+    color: #ffffff;
+    font-size: 0.95rem;
     box-sizing: border-box;
     transition: all 0.2s ease;
+    outline: none;
 }
 
     .input-control:focus {
-        outline: none;
-        border-color: #a855f7;
-        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
+        border-color: #7f5af0;
+        box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.2);
+        background: #181227;
     }
 
-/* Botão de Ação Yuta (Roxo) */
+    .input-control::placeholder {
+        color: #4a3e68;
+    }
+
+/* Botão de Ação Yuta */
 .btn-yuta-submit {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(90deg, #7c3aed 0%, #6d28d9 100%);
+    padding: 15px;
+    background: linear-gradient(90deg, #7f5af0 0%, #6942e6 100%);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #ffffff;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(109, 40, 217, 0.4);
+    box-shadow: 0 4px 14px rgba(127, 90, 240, 0.3);
     transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-    .btn-yuta-submit:hover {
+    .btn-yuta-submit:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6);
+        box-shadow: 0 6px 20px rgba(127, 90, 240, 0.5);
         filter: brightness(1.1);
     }
 
     .btn-yuta-submit:disabled {
-        background: #2d243d;
-        color: #7c728a;
+        background: #201a2e;
+        color: #554a75;
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
@@ -132,11 +145,20 @@
     color: #ff7b72;
     padding: 12px;
     border-radius: 6px;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.text-danger {
+    font-size: 0.75rem;
+    color: #ff7b72;
+    margin-top: 6px;
+    display: block;
+    text-align: left;
+    font-weight: 500;
 }
 
 /* Loading Spinner */
