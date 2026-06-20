@@ -2,18 +2,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# 1. Copia todos os arquivos do repositório para dentro do container Linux
+# 1. Copia toda a estrutura do repositório para dentro do container
 COPY . .
 
-# 2. Executa o restore caçando o .csproj no caminho de tripla pasta revelado pelo PowerShell
-RUN dotnet restore "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj"
+# 2. Faz o restore procurando o arquivo .csproj em qualquer subpasta existente
+RUN dotnet restore **/Yuta.FactoryOps.Server.csproj
 
-# 3. Compila focando no caminho exato
-RUN dotnet build "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj" -c Release -o /app/build
+# 3. Compila a aplicação buscando o projeto automaticamente de forma dinâmica
+RUN dotnet build **/Yuta.FactoryOps.Server.csproj -c Release -o /app/build
 
-# 4. Publica a aplicação
+# 4. Publica a aplicação focando no mesmo arquivo encontrado
 FROM build AS publish
-RUN dotnet publish "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish **/Yuta.FactoryOps.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Estágio Final de Execução
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
