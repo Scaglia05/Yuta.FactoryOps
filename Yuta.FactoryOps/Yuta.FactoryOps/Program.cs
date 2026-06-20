@@ -32,14 +32,12 @@ builder.Services.AddScoped<AuthenticationStateProvider, Microsoft.AspNetCore.Com
 
 // --- 2. INJEÇÕES DE INFRAESTRUTURA DA YUTA ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<FactoryDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-
-// ADICIONE ESTA LINHA AQUI NO SERVER:
 builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
-
 builder.Services.AddControllers();
 
 // --- 3. CONFIGURAÇÃO DE SEGURANÇA (JWT) ---
