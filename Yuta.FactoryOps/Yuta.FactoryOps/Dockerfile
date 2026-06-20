@@ -2,10 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# 1. Copia toda a estrutura do repositório (Domain, Application, Server, Client)
+# 1. Copia toda a estrutura do repositório para o container
 COPY . .
 
-# 2. Restaura as dependências usando o caminho correto a partir da raiz real
+# 2. Restaura as dependências usando o caminho duplo correto
 RUN dotnet restore "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj"
 
 # 3. Compila o projeto do servidor
