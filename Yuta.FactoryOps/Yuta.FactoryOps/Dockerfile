@@ -2,16 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# 1. Copia a estrutura completa para o container
+# 1. Copia absolutamente tudo para garantir que nenhum arquivo fique de fora
 COPY . .
 
-# 2. Restaura as dependências baseadas na solução global
-RUN dotnet restore
+# 2. Executa o restore apontando diretamente para o arquivo do Servidor (o .NET resolve os outros automaticamente)
+RUN dotnet restore "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj"
 
-# 3. Compila a partir da raiz usando a solução para manter as referências de projetos intactas
-RUN dotnet build -c Release -o /app/build
+# 3. Compila focando EXPLICITAMENTE no .csproj do servidor (evita que o compilador se perca procurando projetos fantasmas na raiz)
+RUN dotnet build "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj" -c Release -o /app/build
 
-# 4. Publica focando explicitamente no projeto do Servidor, que arrasta o Client junto
+# 4. Publica a aplicação
 FROM build AS publish
 RUN dotnet publish "Yuta.FactoryOps/Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
