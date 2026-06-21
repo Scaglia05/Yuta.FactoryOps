@@ -12,8 +12,7 @@ COPY *.sln ./
 COPY Yuta.FactoryOps.Domain/ ./Yuta.FactoryOps.Domain/
 COPY Yuta.FactoryOps.Application/ ./Yuta.FactoryOps.Application/
 COPY Yuta.FactoryOps.Client/ ./Yuta.FactoryOps.Client/
-# Atenção aqui: copiando a subpasta onde o Server está escondido
-COPY Yuta.FactoryOps.Server/ ./Yuta.FactoryOps.Server/
+
 
 # Restaura o projeto Server puxando ele do caminho duplicado
 RUN dotnet restore Yuta.FactoryOps.Server/Yuta.FactoryOps.Server.csproj
