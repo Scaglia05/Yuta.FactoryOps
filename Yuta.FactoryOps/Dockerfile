@@ -7,20 +7,22 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# 1. Copia todos os 4 projetos mantendo a estrutura correta
-COPY . .
+# Copia a estrutura exatamente como está mapeada na sua máquina
+COPY *.sln ./
+COPY Yuta.FactoryOps.Domain/ ./Yuta.FactoryOps.Domain/
+COPY Yuta.FactoryOps.Application/ ./Yuta.FactoryOps.Application/
+COPY Yuta.FactoryOps.Client/ ./Yuta.FactoryOps.Client/
+# Atenção aqui: copiando a subpasta onde o Server está escondido
+COPY Yuta.FactoryOps/ ./Yuta.FactoryOps/
 
-# 2. Limpa resíduos de compilação locais para evitar conflitos no Docker
-RUN dotnet clean $(find . -name "*.slnx" -o -name "*.sln" | head -n 1)
+# Restaura o projeto Server puxando ele do caminho duplicado
+RUN dotnet restore Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj
 
-# 3. Restaura as dependências da Solução inteira (as 4 camadas)
-RUN dotnet restore $(find . -name "*.slnx" -o -name "*.sln" | head -n 1)
-
-# 4. Compila o Server (que por consequência compila as outras 3 camadas)
-RUN dotnet build $(find . -name "Yuta.FactoryOps.Server.csproj") -c Release -o /app/build
+# Compila o projeto Server
+RUN dotnet build Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish $(find . -name "Yuta.FactoryOps.Server.csproj") -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish Yuta.FactoryOps/Yuta.FactoryOps.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
