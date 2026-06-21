@@ -13,10 +13,6 @@ COPY Yuta.FactoryOps.Domain/ ./Yuta.FactoryOps.Domain/
 COPY Yuta.FactoryOps.Application/ ./Yuta.FactoryOps.Application/
 COPY Yuta.FactoryOps.Client/ ./Yuta.FactoryOps.Client/
 
-
-# Restaura o projeto Server puxando ele do caminho duplicado
-RUN dotnet restore Yuta.FactoryOps.Server/Yuta.FactoryOps.Server.csproj
-
 # Compila o projeto Server
 RUN dotnet build Yuta.FactoryOps.Server/Yuta.FactoryOps.Server.csproj -c Release -o /app/build
 
