@@ -1,0 +1,1 @@
+D:\YutaFactoryOpsWeb\Yuta.FactoryOps\Yuta.FactoryOps\Yuta.FactoryOps.Client\obj\Debug\net8.0\staticwebassets.build.json

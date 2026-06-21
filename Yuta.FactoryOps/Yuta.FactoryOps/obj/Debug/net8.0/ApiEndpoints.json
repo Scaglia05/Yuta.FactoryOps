@@ -1,0 +1,87 @@
+[
+  {
+    "ContainingType": "Yuta.FactoryOps.Server.Controllers.AuthController",
+    "Method": "ConfirmarEmail",
+    "RelativePath": "api/Auth/ConfirmarEmail",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "token",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Yuta.FactoryOps.Server.Controllers.AuthController",
+    "Method": "CriarUsuario",
+    "RelativePath": "api/Auth/CriarUsuario",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "payload",
+        "Type": "Yuta.FactoryOps.Domain.DTOs.RegistroUsuarioDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Yuta.FactoryOps.Server.Controllers.AuthController",
+    "Method": "GerarTokenConfirmacao",
+    "RelativePath": "api/Auth/GerarTokenConfirmacao",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Yuta.FactoryOps.Server.Controllers.AuthController",
+    "Method": "LoginComEmail",
+    "RelativePath": "api/Auth/LoginEmailAPI",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "payload",
+        "Type": "Yuta.FactoryOps.Application.DTOs.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Yuta.FactoryOps.Server.Controllers.AuthController",
+    "Method": "LoginComGoogle",
+    "RelativePath": "api/Auth/LoginGooglelAPI",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "payload",
+        "Type": "Yuta.FactoryOps.Application.DTOs.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
