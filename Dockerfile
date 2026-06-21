@@ -10,13 +10,13 @@ WORKDIR /src
 # 1. Copia o arquivo de solução moderno (.slnx)
 COPY Yuta.FactoryOps.slnx ./
 
-# 2. Copia as pastas exatamente com os nomes do repositório
+# 2. Copia TODAS as 4 pastas das camadas (Incluindo o Server que faltava)
 COPY Yuta.FactoryOps.Domain/ ./Yuta.FactoryOps.Domain/
 COPY Yuta.FactoryOps.Application/ ./Yuta.FactoryOps.Application/
 COPY Yuta.FactoryOps.Client/ ./Yuta.FactoryOps.Client/
 COPY Yuta.FactoryOps.Server/ ./Yuta.FactoryOps.Server/
 
-# 3. Restaura as dependências usando o caminho correto mapeado do Server
+# 3. Restaura as dependências do projeto principal
 RUN dotnet restore Yuta.FactoryOps.Server/Yuta.FactoryOps.Server.csproj
 
 # 4. Compila o projeto Server
