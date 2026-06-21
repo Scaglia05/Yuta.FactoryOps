@@ -1,7 +1,7 @@
 ﻿using Yuta.FactoryOps.Application.Interfaces;
 using Yuta.FactoryOps.Domain.Entities;
 
-namespace Yuta.FactoryOps.Application.Services;
+namespace Yuta.FactoryOps.Application.Interfaces.Services;
 
 public class DashboardMockService : IDashboardService
 {

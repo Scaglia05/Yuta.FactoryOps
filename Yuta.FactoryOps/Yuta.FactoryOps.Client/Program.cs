@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Yuta.FactoryOps.Application.Interfaces;
-using Yuta.FactoryOps.Application.Services;
+using Yuta.FactoryOps.Application.Interfaces.Services;
 using Yuta.FactoryOps.Client.Security;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
