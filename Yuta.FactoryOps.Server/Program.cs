@@ -10,34 +10,40 @@ using Yuta.FactoryOps.Server.Repositories.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO ---
+// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO (CORRIGIDO) ---
 builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveServerComponents()       //  ADICIONADO: Suporte para o modo Server
+    .AddInteractiveWebAssemblyComponents();   //  Suporte para o modo WebAssembly
 
 builder.Services.AddSyncfusionBlazor();
 
-
-builder.Services.AddScoped(sp => new HttpClient
+// Configuração flexível de HttpClient para rodar tanto local quanto no Render
+builder.Services.AddScoped(sp =>
 {
-    BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:7183")
+    var config = sp.GetRequiredService<IConfiguration>();
+    // Se estiver no Render, usa a porta padrão do container (http), caso contrário usa a URL configurada
+    var baseUrl = config["BackendUrl"] ?? (builder.Environment.IsDevelopment() ? "https://localhost:7183" : "http://localhost:8080");
+    return new HttpClient { BaseAddress = new Uri(baseUrl) };
 });
 
-// Como deve ficar:
 builder.Services.AddCascadingAuthenticationState();
 
+// --- 2. CONFIGURAÇÃO DO BANCO DE DADOS ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<FactoryDbContext>(options =>
     options.UseNpgsql(connectionString, npgsqlOptions =>
     {
         npgsqlOptions.EnableRetryOnFailure(5);
     }));
 
+// --- 3. REPOSITÓRIOS E AUTENTICAÇÃO ---
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<AuthenticationStateProvider, Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
 builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>(sp =>
     (Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt)sp.GetRequiredService<AuthenticationStateProvider>());
+
 builder.Services.AddControllers();
+
 var jwtKey = builder.Configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
 var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
@@ -77,16 +83,13 @@ app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
 // ORDEM CRUCIAL DA ENGRENAGEM BLAZOR:
-app.UseBlazorFrameworkFiles(); // 1º: Mapeia os arquivos internos do Blazor Client (.wasm, etc)
-app.UseStaticFiles();          // 2º: Serve os arquivos físicos da wwwroot (CSS, JS, Imagens)
-
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-// --- 5. MIDDLEWARES DE AUTENTICAÇÃO ---
 app.UseAuthentication();
 app.UseAuthorization();
 
-// --- 6. MAPEAMENTO DAS ROTAS DE CONTROLLERS (API) ---
 app.MapControllers();
 
 // --- 7. MAPEAMENTO DAS PÁGINAS BLAZOR INTERATIVAS ---
