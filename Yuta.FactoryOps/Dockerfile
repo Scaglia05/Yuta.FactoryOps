@@ -7,13 +7,16 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia a solução inteira mantendo a estrutura de pastas das camadas
+# 1. Copia todos os 4 projetos mantendo a estrutura correta
 COPY . .
 
-# Restaura as dependências caçando o arquivo de solução (.sln)
+# 2. Limpa resíduos de compilação locais para evitar conflitos no Docker
+RUN dotnet clean $(find . -name "*.slnx" -o -name "*.sln" | head -n 1)
+
+# 3. Restaura as dependências da Solução inteira (as 4 camadas)
 RUN dotnet restore $(find . -name "*.slnx" -o -name "*.sln" | head -n 1)
 
-# Compila explicitamente o projeto Server (ponto de entrada do Blazor)
+# 4. Compila o Server (que por consequência compila as outras 3 camadas)
 RUN dotnet build $(find . -name "Yuta.FactoryOps.Server.csproj") -c Release -o /app/build
 
 FROM build AS publish
