@@ -17,8 +17,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSyncfusionBlazor();
 
-// Registra o HttpClient para o motor de renderização do servidor
-// Altere de http://localhost:5000 para a porta real do seu console:
+
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:7183")
@@ -27,20 +26,17 @@ builder.Services.AddScoped(sp => new HttpClient
 // Como deve ficar:
 builder.Services.AddCascadingAuthenticationState();
 
-// Registra o provedor de estado de autenticação padrão do ASP.NET Core para servidores
-builder.Services.AddScoped<AuthenticationStateProvider, Microsoft.AspNetCore.Components.Server.ServerAuthenticationStateProvider>();
-
-// --- 2. INJEÇÕES DE INFRAESTRUTURA DA YUTA ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<FactoryDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(5);
+    }));
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
 builder.Services.AddControllers();
-
-// --- 3. CONFIGURAÇÃO DE SEGURANÇA (JWT) ---
 var jwtKey = builder.Configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
 var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
