@@ -91,8 +91,7 @@ app.MapControllers();
 
 // --- 7. MAPEAMENTO DAS PÁGINAS BLAZOR INTERATIVAS ---
 app.MapRazorComponents<Yuta.FactoryOps.Client.Pages.App>()
-    .AddInteractiveServerRenderMode() // Mantenha este se seu projeto for Blazor Web App
-    .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Yuta.FactoryOps.Client._Imports).Assembly);
+    .AddInteractiveServerRenderMode()
+    .AddInteractiveWebAssemblyRenderMode();
 
 app.Run();
