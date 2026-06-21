@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Syncfusion.Blazor;
 using System.Text;
-using Yuta.FactoryOps.Server.Components;
 using Yuta.FactoryOps.Server.DbContextBuild;
 using Yuta.FactoryOps.Server.Repositories;
 using Yuta.FactoryOps.Server.Repositories.Interface;
@@ -91,7 +90,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 // --- 7. MAPEAMENTO DAS PÁGINAS BLAZOR INTERATIVAS ---
-app.MapRazorComponents<App>()
+app.MapRazorComponents<Yuta.FactoryOps.Client.Pages.App>()
+    .AddInteractiveServerRenderMode() // Mantenha este se seu projeto for Blazor Web App
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Yuta.FactoryOps.Client._Imports).Assembly);
 
