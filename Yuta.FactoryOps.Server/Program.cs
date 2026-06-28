@@ -2,18 +2,35 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using Syncfusion.Blazor;
 using System.Text;
-using Yuta.FactoryOps.Server.DbContextBuild;
-using Yuta.FactoryOps.Server.Repositories;
-using Yuta.FactoryOps.Server.Repositories.Interface;
+using Yuta.FactoryOps.Infrastructure.Data;
+using Yuta.FactoryOps.Infrastructure.Repositories;
+using Yuta.FactoryOps.Domain.Interfaces;
+using Yuta.FactoryOps.Application.Services;
+using Yuta.FactoryOps.Application.Interfaces;
+using Yuta.FactoryOps.Domain.Services;
+using Yuta.FactoryOps.Server.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
-// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO (CORRIGIDO) ---
+try
+{
+    Log.Information("Iniciando aplicação Yuta.FactoryOps");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Configurar Serilog
+    builder.Host.UseSerilog();
+
+// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO ---
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()       //  ADICIONADO: Suporte para o modo Server
-    .AddInteractiveWebAssemblyComponents();   //  Suporte para o modo WebAssembly
+    .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddSyncfusionBlazor();
 
@@ -36,8 +53,13 @@ builder.Services.AddDbContext<FactoryDbContext>(options =>
         npgsqlOptions.EnableRetryOnFailure(5);
     }));
 
-// --- 3. REPOSITÓRIOS E AUTENTICAÇÃO ---
+// --- 3. REPOSITÓRIOS E SERVIÇOS ---
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IEmpresaRepository, EmpresaRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+
 builder.Services.AddScoped<AuthenticationStateProvider, Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
 builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>(sp =>
     (Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt)sp.GetRequiredService<AuthenticationStateProvider>());
@@ -69,6 +91,8 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // --- 4. CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARES) ---
+app.UseGlobalExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -94,7 +118,16 @@ app.MapControllers();
 
 // --- 7. MAPEAMENTO DAS PÁGINAS BLAZOR INTERATIVAS ---
 app.MapRazorComponents<Yuta.FactoryOps.Client.Pages.App>()
-    .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
 
+Log.Information("Aplicação iniciada com sucesso");
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Aplicação terminou inesperadamente");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

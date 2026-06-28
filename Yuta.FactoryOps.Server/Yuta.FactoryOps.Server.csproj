@@ -8,22 +8,23 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Anthropic.SDK" Version="5.10.0" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.12" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.12" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		  <PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
 		<PackageReference Include="Syncfusion.Blazor.Core" Version="33.2.13" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Yuta.FactoryOps.Application\Yuta.FactoryOps.Application.csproj" />
 		<ProjectReference Include="..\Yuta.FactoryOps.Domain\Yuta.FactoryOps.Domain.csproj" />
+		<ProjectReference Include="..\Yuta.FactoryOps.Infrastructure\Yuta.FactoryOps.Infrastructure.csproj" />
 		<ProjectReference Include="..\Yuta.FactoryOps.Client\Yuta.FactoryOps.Client.csproj" />
 	</ItemGroup>
 

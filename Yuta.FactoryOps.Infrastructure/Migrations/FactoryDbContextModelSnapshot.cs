@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Yuta.FactoryOps.Server.DbContextBuild;
+using Yuta.FactoryOps.Infrastructure.Data;
 
 #nullable disable
 
-namespace Yuta.FactoryOps.Server.Migrations
+namespace Yuta.FactoryOps.Infrastructure.Migrations
 {
     [DbContext(typeof(FactoryDbContext))]
-    [Migration("20260618031730_CriarEstruturaSupabase")]
-    partial class CriarEstruturaSupabase
+    partial class FactoryDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

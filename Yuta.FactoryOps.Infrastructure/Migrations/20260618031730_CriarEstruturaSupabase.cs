@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Yuta.FactoryOps.Server.Migrations
+namespace Yuta.FactoryOps.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class CriarEstruturaSupabase : Migration

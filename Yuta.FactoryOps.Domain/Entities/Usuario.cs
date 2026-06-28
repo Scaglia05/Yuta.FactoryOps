@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Yuta.FactoryOps.Domain.Entities
 {
@@ -23,18 +20,5 @@ namespace Yuta.FactoryOps.Domain.Entities
     public class UsuarioAPI
     {
         public const string CriarUsuario = nameof(CriarUsuario);
-    }
-
-    public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
-    {
-        public void Configure(EntityTypeBuilder<Usuario> builder)
-        {
-            builder.HasKey(u => u.Id);
-            builder.HasIndex(u => u.Email).IsUnique();
-            builder.HasOne<Empresa>()
-                  .WithMany()
-                  .HasForeignKey(u => u.EmpresaId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        }
     }
 }

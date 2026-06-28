@@ -1,16 +1,12 @@
-﻿using System.Threading.Tasks;
-using Yuta.FactoryOps.Application.DTOs;
 using Yuta.FactoryOps.Domain.DTOs;
 using Yuta.FactoryOps.Domain.Entities;
 
-namespace Yuta.FactoryOps.Server.Repositories.Interface
+namespace Yuta.FactoryOps.Domain.Services
 {
-    public interface IAuthRepository
+    public interface IAuthService
     {
-        Task<object> ExecutarLoginEmailAsync(LoginRequestDto payload); 
-        Task<object> ExecutarLoginGoogleAsync(LoginRequestDto payload);
-        Task<object> ExecutarGeracaoTokenEmailAsync(string email);
-        Task<Usuario?> ObterPorEmailAsync(string email);
+        Task<object> ValidarLoginEmailAsync(LoginRequestDto payload);
+        Task<object> ValidarLoginGoogleAsync(LoginRequestDto payload);
         Task<Usuario> CriarUsuarioAsync(RegistroUsuarioDto payload);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);
         Task<string> GerarTokenConfirmacaoEmailAsync(Usuario usuario);

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Yuta.FactoryOps.Application.DTOs;
 using Yuta.FactoryOps.Domain.Entities;
-using Yuta.FactoryOps.Server.Repositories.Interface;
+using Yuta.FactoryOps.Application.Interfaces;
 using Yuta.FactoryOps.Domain.DTOs;
 
 namespace Yuta.FactoryOps.Server.Controllers
