@@ -28,9 +28,10 @@ try
     // Configurar Serilog
     builder.Host.UseSerilog();
 
-// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO ---
+// --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO (CORRIGIDO) ---
 builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveServerComponents()       //  ADICIONADO: Suporte para o modo Server
+    .AddInteractiveWebAssemblyComponents();   //  Suporte para o modo WebAssembly
 
 builder.Services.AddSyncfusionBlazor();
 
@@ -118,6 +119,7 @@ app.MapControllers();
 
 // --- 7. MAPEAMENTO DAS PÁGINAS BLAZOR INTERATIVAS ---
 app.MapRazorComponents<Yuta.FactoryOps.Client.Pages.App>()
+    .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
 
 Log.Information("Aplicação iniciada com sucesso");
