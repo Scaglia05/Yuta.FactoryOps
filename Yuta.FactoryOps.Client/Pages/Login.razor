@@ -12,6 +12,8 @@
 @attribute [AllowAnonymous]
 @layout EmptyLayout
 
+<link href="CSS/Login.css" rel="stylesheet" />
+
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ProvedorAutenticacaoJwt ProvedorAuth
@@ -66,6 +68,10 @@
                     }
                 </button>
             </EditForm>
+
+            <div class="yuta-footer-links">
+                <a href="https://yuta.com.br" target="_blank">Precisa de ajuda? Entre em contato</a>
+            </div>
         }
         else
         {
@@ -86,7 +92,44 @@
 
     protected override void OnInitialized()
     {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var queryParameters = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        
+        // Verifica se há um token na URL (callback de autenticação externa)
+        var token = queryParameters["token"];
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Autentica automaticamente com o token recebido
+            _ = ProcessarTokenExterno(Uri.UnescapeDataString(token));
+        }
+        else
+        {
+            var error = queryParameters["error"];
+            if (!string.IsNullOrEmpty(error))
+            {
+                mensagemErro = $"Erro na autenticação externa: {Uri.UnescapeDataString(error)}";
+            }
+        }
+        
         renderizarFormulario = true;
+    }
+
+    private async Task ProcessarTokenExterno(string token)
+    {
+        isCarregando = true;
+        try
+        {
+            await ProvedorAuth.MarcarComoAutenticado(token);
+            Navigation.NavigateTo("/", replace: true);
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao processar autenticação externa.";
+        }
+        finally
+        {
+            isCarregando = false;
+        }
     }
 
     private async Task ExecutarLogin()

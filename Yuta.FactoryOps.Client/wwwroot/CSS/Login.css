@@ -11,64 +11,55 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at 20% 30%, #170e26 0%, #07030e 100%);
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: #f0f3f6;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #ffffff;
     z-index: 9999;
+    overflow: auto;
 }
 
-/* Card do Formulário (Visual vidro fumê com detalhes roxos) */
+/* Card do Formulário (Design moderno glassmorphism) */
 .yuta-login-card {
-    background: rgba(14, 10, 22, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(138, 75, 247, 0.2);
-    border-radius: 16px;
-    padding: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 48px;
     width: 100%;
-    max-width: 420px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 /* Header da Marca (YUTA) */
 .yuta-brand {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
 }
 
     .yuta-brand h1 {
-        font-size: 2.4rem;
-        font-weight: 900;
-        letter-spacing: 5px;
-        background: linear-gradient(45deg, #b794f4, #e9d5ff);
+        font-size: 2.8rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
     }
 
     .yuta-brand p {
-        color: #837aa9;
-        font-size: 0.8rem;
-        margin-top: 8px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-weight: 600;
+        color: #6b7280;
+        font-size: 1rem;
+        margin-top: 12px;
+        font-weight: 500;
     }
-
-/* NOVO: Quadro que identifica e agrupa as caixas de texto */
-.yuta-form-fields-box {
-    background-color: #09060e;
-    border: 1px solid #1f1633;
-    border-radius: 10px;
-    padding: 24px 20px 6px 20px;
-    margin-bottom: 24px;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
-}
 
 /* Grupos de Input internos ao Quadro */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     text-align: left;
     display: flex;
     flex-direction: column;
@@ -76,63 +67,73 @@
 
     .form-group label {
         display: block;
-        font-size: 0.85rem;
-        color: #a398cc;
+        font-size: 0.875rem;
+        color: #374151;
         margin-bottom: 8px;
         font-weight: 600;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.01em;
     }
 
-/* Controle Nativo Blazor Estilizado (Sem falhas!) */
+/* Controle Nativo Blazor Estilizado (Design moderno) */
 .input-control {
     width: 100%;
-    padding: 12px 16px;
-    background: #140f20;
-    border: 1px solid #2d2244;
-    border-radius: 6px;
-    color: #ffffff;
-    font-size: 0.95rem;
+    padding: 14px 16px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    color: #111827;
+    font-size: 1rem;
     box-sizing: border-box;
     transition: all 0.2s ease;
     outline: none;
+    font-weight: 500;
 }
 
     .input-control:focus {
-        border-color: #7f5af0;
-        box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.2);
-        background: #181227;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        background: #ffffff;
     }
 
     .input-control::placeholder {
-        color: #4a3e68;
+        color: #9ca3af;
     }
 
-/* Botão de Ação Yuta */
+    .input-control:disabled {
+        background: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+/* Botão de Ação Principal */
 .btn-yuta-submit {
     width: 100%;
-    padding: 15px;
-    background: linear-gradient(90deg, #7f5af0 0%, #6942e6 100%);
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     color: #ffffff;
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(127, 90, 240, 0.3);
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+    text-transform: none;
+    letter-spacing: 0.01em;
 }
 
     .btn-yuta-submit:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(127, 90, 240, 0.5);
-        filter: brightness(1.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-yuta-submit:active:not(:disabled) {
+        transform: translateY(0);
     }
 
     .btn-yuta-submit:disabled {
-        background: #201a2e;
-        color: #554a75;
+        background: #d1d5db;
+        color: #6b7280;
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
@@ -140,21 +141,22 @@
 
 /* Alertas de Erro */
 .yuta-alert {
-    background: rgba(248, 81, 73, 0.1);
-    border: 1px solid rgba(248, 81, 73, 0.4);
-    color: #ff7b72;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    margin-bottom: 20px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    font-weight: 500;
 }
 
 .text-danger {
-    font-size: 0.75rem;
-    color: #ff7b72;
+    font-size: 0.8rem;
+    color: #dc2626;
     margin-top: 6px;
     display: block;
     text-align: left;
@@ -177,5 +179,185 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* Divisor Social */
+.yuta-divider {
+    display: flex;
+    align-items: center;
+    margin: 32px 0;
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+    .yuta-divider::before,
+    .yuta-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .yuta-divider span {
+        padding: 0 16px;
+        font-weight: 500;
+    }
+
+/* Botões Sociais Modernos */
+.yuta-social-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.btn-yuta-social {
+    flex: 1;
+    padding: 14px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+    .btn-yuta-social:hover:not(:disabled) {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-yuta-social:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-yuta-social:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-yuta-social.btn-google svg {
+        color: #4285f4;
+    }
+
+    .btn-yuta-social.btn-microsoft svg {
+        color: #00a4ef;
+    }
+
+/* Links de Rodapé */
+.yuta-footer-links {
+    text-align: center;
+    margin-top: 24px;
+}
+
+    .yuta-footer-links a {
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+        .yuta-footer-links a:hover {
+            color: #667eea;
+        }
+
+/* Alerta de Sucesso */
+.yuta-success {
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #059669;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+}
+
+/* Informação */
+.yuta-info {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+}
+
+/* Responsividade Moderna */
+@media (max-width: 768px) {
+    .yuta-login-container {
+        padding: 20px;
+        align-items: flex-start;
+        padding-top: 60px;
+    }
+    
+    .yuta-login-card {
+        padding: 32px 24px;
+        max-width: 100%;
+        border-radius: 20px;
+    }
+    
+    .yuta-brand h1 {
+        font-size: 2.2rem;
+    }
+    
+    .yuta-brand p {
+        font-size: 0.9rem;
+    }
+    
+    .yuta-social-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .btn-yuta-social {
+        width: 100%;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .input-control {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-yuta-submit {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .yuta-login-card {
+        padding: 24px 20px;
+    }
+    
+    .yuta-brand h1 {
+        font-size: 1.8rem;
+    }
+    
+    .yuta-divider {
+        margin: 24px 0;
     }
 }

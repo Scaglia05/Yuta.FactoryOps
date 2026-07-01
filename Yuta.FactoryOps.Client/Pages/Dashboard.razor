@@ -1,163 +1,214 @@
-﻿@page "/dashboard"
-@using Yuta.FactoryOps.Application.Interfaces
+@page "/dashboard"
+@layout MainLayout
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
 @using Yuta.FactoryOps.Domain.Entities
-@inject IDashboardService DashboardService
 
-<div class="factoryops-container">
+<PageTitle>Dashboard - YUTA</PageTitle>
 
-    <header class="factory-header">
-        <div class="header-left">
-            <span class="logo">YUTA <small>prevent</small></span>
-            <span class="brand-title">FactoryOps</span>
-            <div class="badge-status">Linha 1 — Planta Campinas <span class="dot-online">● ONLINE</span></div>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p class="subtitle">Visão geral do sistema</p>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Total de Usuários</h3>
+                <p class="metric-value">@totalUsuarios</p>
+                <span class="metric-trend metric-trend-positive">+12% este mês</span>
+            </div>
         </div>
-        <div class="header-right">
-            <button class="btn-action">⚠️ Injetar Falha</button>
-            <button class="btn-action">📊 Relatório</button>
-            <div class="time-display">21:37:33 <small>qua, 17/06</small></div>
+
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Total de Empresas</h3>
+                <p class="metric-value">@totalEmpresas</p>
+                <span class="metric-trend metric-trend-positive">+5% este mês</span>
+            </div>
         </div>
-    </header>
 
-    <div class="dashboard-grid">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Usuários Ativos</h3>
+                <p class="metric-value">@usuariosAtivos</p>
+                <span class="metric-trend metric-trend-positive">+8% este mês</span>
+            </div>
+        </div>
 
-        <aside class="sidebar-ativos">
-            <h3>ATIVOS — LINHA 1</h3>
-            @if (ativos == null)
-            {
-                <p class="loading-text">Carregando malha...</p>
-            }
-            else
-            {
-                @foreach (var ativo in ativos)
-                {
-                    <div class="ativo-card">
-                        <div class="ativo-info">
-                            <h4>@ativo.Nome</h4>
-                            <p>@ativo.Descricao</p>
-                        </div>
-                        <div class="ativo-saude">
-                            <div class="bar-chart">
-                                @if (ativo.HistoricoSaude != null)
-                                {
-                                    @foreach (var nivel in ativo.HistoricoSaude)
-                                    {
-                                        <div class="bar" style="height: @(nivel * 10)%;"></div>
-                                    }
-                                }
-                            </div>
-                            <span class="percentage @(ativo.SaudePercentual < 80 ? "warning" : "good")">@ativo.SaudePercentual%</span>
-                        </div>
-                    </div>
-                }
-            }
-        </aside>
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Registros Hoje</h3>
+                <p class="metric-value">@registrosHoje</p>
+                <span class="metric-trend metric-trend-neutral">+2% ontem</span>
+            </div>
+        </div>
+    </div>
 
-        <main class="main-content">
-            <nav class="sub-nav">
-                <button class="nav-tab @(abaAtiva == "visao" ? "active" : "")" @onclick='() => AlternarAba("visao")'>Visão Geral</button>
-                <button class="nav-tab @(abaAtiva == "fft" ? "active" : "")" @onclick='() => AlternarAba("fft")'>Espectro FFT</button>
-                <button class="nav-tab @(abaAtiva == "manutencao" ? "active" : "")" @onclick='() => AlternarAba("manutencao")'>Manutenção</button>
-                <span class="alert-badge">Alertas <span>1</span></span>
-            </nav>
-
-            @if (abaAtiva == "manutencao")
-            {
-                <div class="filter-bar">
-                    <button class="filter-btn @(filtroAtivo == "todos" ? "active" : "")" @onclick='() => Filtrar("todos")'>Todos</button>
-                    <button class="filter-btn @(filtroAtivo == "preventiva" ? "active" : "")" @onclick='() => Filtrar("preventiva")'>Preventiva</button>
-                    <button class="filter-btn @(filtroAtivo == "corretiva" ? "active" : "")" @onclick='() => Filtrar("corretiva")'>Corretiva</button>
-                    <button class="filter-btn @(filtroAtivo == "preditiva" ? "active" : "")" @onclick='() => Filtrar("preditiva")'>Preditiva</button>
-                </div>
-
-                <div class="timeline-container">
-                    @if (manutencoes == null)
-                    {
-                        <p class="loading-text">Buscando ordens...</p>
-                    }
-                    else
-                    {
-                        @foreach (var manut in ObterManutencoesFiltradas())
+    <div class="dashboard-content">
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Usuários Recentes</h2>
+                <a href="/usuarios" class="view-all">Ver todos →</a>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Empresa</th>
+                            <th>Status</th>
+                            <th>Data Cadastro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (usuariosRecentes != null && usuariosRecentes.Count > 0)
                         {
-                            <div class="timeline-card">
-                                <div class="card-time">
-                                    <strong>@manut.Data</strong>
-                                    <span>@manut.Hora</span>
-                                </div>
-                                <span class="badge-tipo @manut.Tipo.ToLower()">@manut.Tipo</span>
-                                <div class="card-body">
-                                    <h5>@manut.Titulo</h5>
-                                    <p>@manut.DetalheAtivo</p>
-                                </div>
-                                <div class="card-status">
-                                    <span class="check-icon">✓</span>
-                                </div>
-                            </div>
+                            @foreach (var usuario in usuariosRecentes.Take(5))
+                            {
+                                <tr>
+                                    <td>@usuario.Nome</td>
+                                    <td>@usuario.Email</td>
+                                    <td>@usuario.EmpresaId</td>
+                                    <td>
+                                        <span class="status-badge @(usuario.EmailConfirmado ? "status-active" : "status-pending")">
+                                            @(usuario.EmailConfirmado ? "Ativo" : "Pendente")
+                                        </span>
+                                    </td>
+                                    <td>@usuario.DataCriacao.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
                         }
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="loading-text" style="padding: 40px; border: 1px dashed #23193a; border-radius: 6px; margin-top: 15px;">
-                    Tela em desenvolvimento para a aba: <strong>@abaAtiva.ToUpper()</strong>
-                </div>
-            }
-        </main>
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="no-data">Nenhum usuário encontrado</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <aside class="sidebar-ia">
-            <div class="ia-header">
-                <button class="tab-ia active">Agente IA</button>
-                <button class="tab-ia">Prescrições</button>
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Empresas Recentes</h2>
+                <a href="/empresas" class="view-all">Ver todas →</a>
             </div>
-            <div class="ia-box">
-                <h4>AGENTE OMEGA <small>Edge AI + RAG</small></h4>
-                <div class="ia-message">
-                    <p><strong>AGENTE OMEGA:</strong> Sistema inicializado. Monitorando <strong>6 ativos</strong> — Linha 1, MetalForm Indústria, Campinas.</p>
-                    <div class="ia-alert">
-                        ⚠️ <strong>Atenção:</strong> detectei alertas críticos na <strong>Prensa Hidráulica PH-02</strong> — vibração elevada e temperatura de óleo acima do limiar. Recomendo diagnóstico imediato.
-                    </div>
-                </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CNPJ</th>
+                            <th>Status</th>
+                            <th>Data Cadastro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (empresasRecentes != null && empresasRecentes.Count > 0)
+                        {
+                            @foreach (var empresa in empresasRecentes.Take(5))
+                            {
+                                <tr>
+                                    <td>@empresa.Nome</td>
+                                    <td>@empresa.Cnpj</td>
+                                    <td>
+                                        <span class="status-badge @(empresa.Ativa ? "status-active" : "status-inactive")">
+                                            @(empresa.Ativa ? "Ativa" : "Inativa")
+                                        </span>
+                                    </td>
+                                    <td>@empresa.DataCadastro.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="no-data">Nenhuma empresa encontrada</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-            <div class="ia-input-container">
-                <input type="text" placeholder="Descreva sintoma ou pergunta técnica..." />
-                <button class="btn-send">➔</button>
-            </div>
-        </aside>
-
+        </div>
     </div>
 </div>
 
 @code {
-    private List<Ativo>? ativos;
-    private List<Manutencao>? manutencoes;
-
-    // Estados interativos da UI
-    private string abaAtiva = "manutencao";
-    private string filtroAtivo = "todos";
+    private int totalUsuarios = 0;
+    private int totalEmpresas = 0;
+    private int usuariosAtivos = 0;
+    private int registrosHoje = 0;
+    private List<Usuario>? usuariosRecentes;
+    private List<Empresa>? empresasRecentes;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        ativos = await DashboardService.ObterAtivosAsync();
-        manutencoes = await DashboardService.ObterManutencoesAsync();
+        await CarregarDados();
     }
 
-    private void AlternarAba(string novaAba)
+    private async Task CarregarDados()
     {
-        abaAtiva = novaAba;
-    }
+        try
+        {
+            isLoading = true;
+            
+            // Carregar usuários
+            var usuariosResponse = await Http.GetFromJsonAsync<List<Usuario>>("api/usuario");
+            if (usuariosResponse != null)
+            {
+                totalUsuarios = usuariosResponse.Count;
+                usuariosAtivos = usuariosResponse.Count(u => u.EmailConfirmado);
+                usuariosRecentes = usuariosResponse.OrderByDescending(u => u.DataCriacao).ToList();
+                registrosHoje = usuariosResponse.Count(u => u.DataCriacao.Date == DateTime.Today);
+            }
 
-    private void Filtrar(string novoFiltro)
-    {
-        filtroAtivo = novoFiltro;
-    }
-
-    private IEnumerable<Manutencao> ObterManutencoesFiltradas()
-    {
-        if (manutencoes == null) return Enumerable.Empty<Manutencao>();
-
-        if (filtroAtivo == "todos")
-            return manutencoes;
-
-        return manutencoes.Where(m => m.Tipo.Equals(filtroAtivo, StringComparison.OrdinalIgnoreCase));
+            // Carregar empresas
+            var empresasResponse = await Http.GetFromJsonAsync<List<Empresa>>("api/empresa");
+            if (empresasResponse != null)
+            {
+                totalEmpresas = empresasResponse.Count;
+                empresasRecentes = empresasResponse.OrderByDescending(e => e.DataCadastro).ToList();
+            }
+        }
+        catch
+        {
+            // Tratar erro
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }

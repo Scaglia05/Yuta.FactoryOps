@@ -1,0 +1,249 @@
+@page "/empresas"
+@layout MainLayout
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using Yuta.FactoryOps.Domain.Entities
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Gestão de Empresas - YUTA</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Gestão de Empresas</h1>
+            <p class="subtitle">Gerencie todas as empresas do sistema</p>
+        </div>
+        <button class="btn-primary" @onclick="AbrirModalCriar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nova Empresa
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Razão Social</th>
+                    <th>CNPJ</th>
+                    <th>Status</th>
+                    <th>Data Cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (empresas != null && empresas.Count > 0)
+                {
+                    @foreach (var empresa in empresas)
+                    {
+                        <tr>
+                            <td>
+                                <div class="company-cell">
+                                    <div class="company-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                                        </svg>
+                                    </div>
+                                    <span>@empresa.Nome</span>
+                                </div>
+                            </td>
+                            <td>@empresa.RazaoSocial</td>
+                            <td>@FormatCnpj(empresa.Cnpj)</td>
+                            <td>
+                                <span class="status-badge @(empresa.Ativa ? "status-active" : "status-inactive")">
+                                    @(empresa.Ativa ? "Ativa" : "Inativa")
+                                </span>
+                            </td>
+                            <td>@empresa.DataCadastro.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" @onclick="() => EditarEmpresa(empresa)" title="Editar">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="btn-icon btn-delete" @onclick="() => ExcluirEmpresa(empresa)" title="Excluir">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="no-data">Nenhuma empresa encontrada</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (mostrarModal)
+{
+    <div class="modal-overlay" @onclick="FecharModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>@(editando ? "Editar Empresa" : "Nova Empresa")</h2>
+                <button class="btn-close" @onclick="FecharModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <EditForm Model="@empresaForm" OnValidSubmit="SalvarEmpresa">
+                <DataAnnotationsValidator />
+                
+                <div class="form-group">
+                    <label>Nome da Empresa</label>
+                    <InputText class="input-control" @bind-Value="empresaForm.Nome" />
+                    <ValidationMessage For="@(() => empresaForm.Nome)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>Razão Social</label>
+                    <InputText class="input-control" @bind-Value="empresaForm.RazaoSocial" />
+                    <ValidationMessage For="@(() => empresaForm.RazaoSocial)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>CNPJ</label>
+                    <InputText class="input-control" @bind-Value="empresaForm.Cnpj" placeholder="00.000.000/0000-00" />
+                    <ValidationMessage For="@(() => empresaForm.Cnpj)" class="text-danger" />
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <InputCheckbox @bind-Value="empresaForm.Ativa" />
+                        Empresa Ativa
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" @onclick="FecharModal">Cancelar</button>
+                    <button type="submit" class="btn-primary" disabled="@isSalvando">
+                        @if (isSalvando)
+                        {
+                            <span>Salvando...</span>
+                        }
+                        else
+                        {
+                            <span>Salvar</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Empresa>? empresas;
+    private Empresa empresaForm = new();
+    private bool mostrarModal = false;
+    private bool editando = false;
+    private bool isSalvando = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        try
+        {
+            empresas = await Http.GetFromJsonAsync<List<Empresa>>("api/empresa");
+        }
+        catch
+        {
+            // Tratar erro
+        }
+    }
+
+    private void AbrirModalCriar()
+    {
+        empresaForm = new Empresa { Ativa = true };
+        editando = false;
+        mostrarModal = true;
+    }
+
+    private void EditarEmpresa(Empresa empresa)
+    {
+        empresaForm = empresa;
+        editando = true;
+        mostrarModal = true;
+    }
+
+    private void FecharModal()
+    {
+        mostrarModal = false;
+        empresaForm = new Empresa { Ativa = true };
+    }
+
+    private async Task SalvarEmpresa()
+    {
+        isSalvando = true;
+        try
+        {
+            if (editando)
+            {
+                await Http.PutAsJsonAsync($"api/empresa/{empresaForm.Id}", empresaForm);
+            }
+            else
+            {
+                await Http.PostAsJsonAsync("api/empresa", empresaForm);
+            }
+            
+            await CarregarDados();
+            FecharModal();
+        }
+        catch
+        {
+            // Tratar erro
+        }
+        finally
+        {
+            isSalvando = false;
+        }
+    }
+
+    private async Task ExcluirEmpresa(Empresa empresa)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"Deseja realmente excluir a empresa {empresa.Nome}?"))
+        {
+            try
+            {
+                await Http.DeleteAsync($"api/empresa/{empresa.Id}");
+                await CarregarDados();
+            }
+            catch
+            {
+                // Tratar erro
+            }
+        }
+    }
+
+    private string FormatCnpj(string cnpj)
+    {
+        if (string.IsNullOrEmpty(cnpj) || cnpj.Length != 14)
+            return cnpj;
+        
+        return Convert.ToUInt64(cnpj).ToString(@"00\.000\.000\/0000\-00");
+    }
+}

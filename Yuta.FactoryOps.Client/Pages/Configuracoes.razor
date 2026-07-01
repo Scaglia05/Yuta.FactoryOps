@@ -1,0 +1,156 @@
+@page "/configuracoes"
+@layout MainLayout
+
+<PageTitle>Configurações - YUTA</PageTitle>
+
+<div class="page-container">
+    <div class="page-header">
+        <div class="page-title">
+            <h1>Configurações</h1>
+            <p class="subtitle">Configurações do sistema</p>
+        </div>
+    </div>
+
+    <div class="settings-container">
+        <div class="settings-section">
+            <h2>Configurações de Autenticação</h2>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Autenticação Google</h3>
+                    <p>Configure o login com Google</p>
+                </div>
+                <div class="setting-control">
+                    <span class="status-badge status-pending">Não configurado</span>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Autenticação Microsoft</h3>
+                    <p>Configure o login com Microsoft</p>
+                </div>
+                <div class="setting-control">
+                    <span class="status-badge status-pending">Não configurado</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Configurações do Sistema</h2>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Modo de Manutenção</h3>
+                    <p>Coloque o sistema em modo de manutenção</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Registro de Novos Usuários</h3>
+                    <p>Permitir novos registros</p>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container {
+    display: grid;
+    gap: 24px;
+}
+
+.settings-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 20px 0;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0 0 4px 0;
+}
+
+.setting-info p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #667eea;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+</style>

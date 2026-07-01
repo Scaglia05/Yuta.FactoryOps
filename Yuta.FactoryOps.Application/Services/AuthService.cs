@@ -66,23 +66,37 @@ namespace Yuta.FactoryOps.Application.Services
             };
         }
 
-        public async Task<object> ValidarLoginGoogleAsync(LoginRequestDto payload)
+        public async Task<bool> ValidarSenhaAsync(Usuario usuario, string password)
         {
-            if (payload == null)
+            if (usuario == null || string.IsNullOrEmpty(usuario.PasswordHash) || string.IsNullOrWhiteSpace(password))
+                return false;
+
+            return BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash);
+        }
+
+        public async Task<object?> ValidarLoginExternoAsync(ExternoLoginDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.ProviderKey))
             {
-                return new { Sucesso = false, Mensagem = "Token do Google inválido." };
+                return new { Sucesso = false, Mensagem = "Dados de autenticação externa inválidos." };
             }
 
-            // TODO: Integrar Google.Apis.Auth para abrir o IdToken real
-            string emailGoogle = "operador.exemplo@empresa.com";
-            string nomeGoogle = "Operador Yuta";
-            string fotoGoogle = "https://lh3.googleusercontent.com/...";
-
-            var usuario = await ProcessarLoginGoogleAsync(emailGoogle, nomeGoogle, fotoGoogle);
+            var usuario = await _usuarioRepository.ObterPorEmailAsync(dto.Email);
 
             if (usuario == null)
             {
-                return new { Sucesso = false, Mensagem = "Erro ao processar login com o Google. Verifique o provisionamento da empresa." };
+                return new { Sucesso = false, Mensagem = "Usuário não encontrado. Entre em contato com o administrador." };
+            }
+
+            // Verifica se o usuário já tem este provedor vinculado
+            if (usuario.ProvedorAutenticacao != dto.Provider)
+            {
+                // Atualiza para usar o provedor externo
+                usuario.ProvedorAutenticacao = dto.Provider;
+                usuario.EmailConfirmado = true;
+                if (!string.IsNullOrEmpty(dto.FotoUrl)) usuario.FotoUrl = dto.FotoUrl;
+                
+                await _usuarioRepository.UpdateAsync(usuario);
             }
 
             string tokenReal = _tokenService.GerarTokenJwt(usuario);
@@ -93,97 +107,6 @@ namespace Yuta.FactoryOps.Application.Services
                 Token = tokenReal,
                 Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
             };
-        }
-
-        public async Task<Usuario> CriarUsuarioAsync(RegistroUsuarioDto payload)
-        {
-            var usuario = new Usuario
-            {
-                Email = payload.Email,
-                Nome = payload.Nome,
-                EmpresaId = payload.EmpresaId,
-                Role = payload.Role
-            };
-
-            if (string.IsNullOrWhiteSpace(payload.Password)) 
-                throw new ArgumentException("A senha não pode ser vazia.", nameof(payload.Password));
-
-            usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(payload.Password);
-            usuario.ProvedorAutenticacao = "Email";
-            usuario.DataCriacao = DateTime.UtcNow;
-
-            await _usuarioRepository.AddAsync(usuario);
-            return usuario;
-        }
-
-        public async Task<bool> ValidarSenhaAsync(Usuario usuario, string password)
-        {
-            if (usuario == null || string.IsNullOrEmpty(usuario.PasswordHash) || string.IsNullOrWhiteSpace(password))
-                return false;
-
-            return BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash);
-        }
-
-        public async Task<string> GerarTokenConfirmacaoEmailAsync(Usuario usuario)
-        {
-            if (usuario == null) throw new ArgumentNullException(nameof(usuario));
-
-            string token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            return await Task.FromResult(token);
-        }
-
-        public async Task<bool> ConfirmarEmailAsync(string email, string token)
-        {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token)) return false;
-
-            var usuario = await _usuarioRepository.ObterPorEmailAsync(email);
-            if (usuario == null) return false;
-
-            usuario.EmailConfirmado = true;
-
-            await _usuarioRepository.UpdateAsync(usuario);
-            return true;
-        }
-
-        public async Task<Usuario?> ProcessarLoginGoogleAsync(string email, string nome, string fotoUrl)
-        {
-            if (string.IsNullOrWhiteSpace(email)) return null;
-
-            var usuario = await _usuarioRepository.ObterPorEmailAsync(email);
-
-            if (usuario != null)
-            {
-                if (usuario.ProvedorAutenticacao != "Google")
-                {
-                    usuario.ProvedorAutenticacao = "Google";
-                    usuario.EmailConfirmado = true;
-                    if (!string.IsNullOrEmpty(fotoUrl)) usuario.FotoUrl = fotoUrl;
-
-                    await _usuarioRepository.UpdateAsync(usuario);
-                }
-                return usuario;
-            }
-
-            var empresaDefault = (await _empresaRepository.GetAllAsync()).FirstOrDefault();
-            if (empresaDefault == null)
-            {
-                return null;
-            }
-
-            var novoUsuario = new Usuario
-            {
-                Email = email.ToLower().Trim(),
-                Nome = nome,
-                FotoUrl = fotoUrl,
-                ProvedorAutenticacao = "Google",
-                EmailConfirmado = true,
-                EmpresaId = empresaDefault.Id,
-                Role = "Operador",
-                DataCriacao = DateTime.UtcNow
-            };
-
-            await _usuarioRepository.AddAsync(novoUsuario);
-            return novoUsuario;
         }
     }
 }

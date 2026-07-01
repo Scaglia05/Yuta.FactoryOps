@@ -1,5 +1,33 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@using Yuta.FactoryOps.Client.Components
 
-<main>
-    @Body
-</main>
+<div class="main-layout">
+    <SideNav />
+    
+    <div class="main-content">
+        @Body
+    </div>
+</div>
+
+<style>
+.main-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+@@media screen and (max-width: 768px) {
+    .main-content {
+        margin-left: 70px;
+        padding: 20px;
+    }
+}
+</style>
