@@ -10,9 +10,10 @@ WORKDIR /src
 # 1. Copia o arquivo de solução moderno (.slnx)
 COPY Yuta.FactoryOps.slnx ./
 
-# 2. Copia TODAS as 4 pastas das camadas (Incluindo o Server que faltava)
+# 2. Copia TODAS as pastas das camadas (Agora incluindo a Infrastructure)
 COPY Yuta.FactoryOps.Domain/ ./Yuta.FactoryOps.Domain/
 COPY Yuta.FactoryOps.Application/ ./Yuta.FactoryOps.Application/
+COPY Yuta.FactoryOps.Infrastructure/ ./Yuta.FactoryOps.Infrastructure/
 COPY Yuta.FactoryOps.Client/ ./Yuta.FactoryOps.Client/
 COPY Yuta.FactoryOps.Server/ ./Yuta.FactoryOps.Server/
 
