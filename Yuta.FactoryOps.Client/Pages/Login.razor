@@ -1,16 +1,20 @@
-﻿@page "/"
-@page "/login"
+﻿@page "/" 
+@page "/login" 
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Authorization
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using System.Text.Json
 @using Yuta.FactoryOps.Client.Rotas
 @using Yuta.FactoryOps.Client.Security
-@using Yuta.FactoryOps.Application.DTOs
+@using Yuta.FactoryOps.Domain.DTOs
+@using Yuta.FactoryOps.Application.Interfaces
+@using Yuta.FactoryOps.Application.Validators
 
 @attribute [AllowAnonymous]
 @layout EmptyLayout
+@rendermode InteractiveServer
 
 <link href="CSS/Login.css" rel="stylesheet" />
 
@@ -18,153 +22,105 @@
 @inject NavigationManager Navigation
 @inject ProvedorAutenticacaoJwt ProvedorAuth
 @inject IJSRuntime JS
+@inject IAuthRepository _authRepository
 
 <PageTitle>YUTA - Login</PageTitle>
 
 <div class="yuta-login-container">
     <div class="yuta-login-card">
 
-        <div class="yuta-brand">
-            <h1>YUTA</h1>
-            <p>Factory Operation System</p>
-        </div>
+      <div class="yuta-brand">
+        <h1>YUTA</h1>
+        <p>Factory Operation System</p>
+    </div>
 
-        @if (renderizarFormulario)
-        {
-            <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin">
-                <DataAnnotationsValidator />
+    @if (renderizarFormulario)
+    {
+        <EditForm Model="@loginModel" OnValidSubmit="ExecutarLogin" FormName="loginForm">
+            <DataAnnotationsValidator />
 
-                @if (!string.IsNullOrEmpty(mensagemErro))
-                {
-                    <div class="yuta-alert">
-                        <span>⚠️</span> @mensagemErro
-                    </div>
-                }
+            @if (!string.IsNullOrEmpty(mensagemErro))
+            {
+                <div class="yuta-alert error-popup">
+                    <span>⚠️</span> @mensagemErro
+                </div>
+            }
 
-                <div class="yuta-form-fields-box">
+            <div class="yuta-form-fields-box">
 
-                    <div class="form-group">
-                        <label for="email">Usuário / E-mail</label>
-                        <InputText id="email" class="input-control" @bind-Value="loginModel.Email" placeholder="nome@yuta.com" />
-                        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Senha de Acesso</label>
-                        <InputText id="password" type="password" class="input-control" @bind-Value="loginModel.Senha" placeholder="••••••••" />
-                        <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" />
-                    </div>
-
+                <div class="form-group">
+                    <label for="email">Usuário / E-mail</label>
+                    <InputText id="email" class="input-control" @bind-Value="@loginModel.Email" placeholder="nome@yuta.com" />
+                    <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
                 </div>
 
-                <button type="submit" class="btn-yuta-submit" disabled="@isCarregando">
-                    @if (isCarregando)
-                    {
-                        <div class="spinner"></div> <span>Autenticando na Malha...</span>
-                    }
-                    else
-                    {
-                        <span>CONECTAR AO SISTEMA</span>
-                    }
-                </button>
-            </EditForm>
+                <div class="form-group">
+                    <label for="password">Senha de Acesso</label>
+                    <InputText id="password" type="password" class="input-control" @bind-Value="@loginModel.Senha" placeholder="••••••••" />
+                    <ValidationMessage For="@(() => loginModel.Senha)" class="text-danger" />
+                </div>
 
-            <div class="yuta-footer-links">
-                <a href="https://yuta.com.br" target="_blank">Precisa de ajuda? Entre em contato</a>
             </div>
-        }
-        else
-        {
-            <div style="text-align:center; padding: 20px; color: #a29bfe;">
-                <div class="spinner" style="margin: 0 auto 10px auto;"></div>
-                Sincronizando terminais...
-            </div>
-        }
 
-    </div>
+            <button type="submit" class="btn-yuta-submit" disabled="@isCarregando">
+                @if (isCarregando)
+                {
+                    <div class="spinner"></div> <span>Autenticando na Malha...</span>
+                }
+                else
+                {
+                    <span>CONECTAR AO SISTEMA</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="yuta-footer-links">
+            <a href="https://yuta.com.br" target="_blank">Precisa de ajuda? Entre em contato</a>
+        </div>
+    }
+    else
+    {
+        <div style="text-align:center; padding: 20px; color: #a29bfe;">
+            <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+            Sincronizando terminais...
+        </div>
+    }
+
+</div>
 </div>
 
 @code {
-    private LoginRequest loginModel { get; set; } = new();
+    private LoginRequestDto loginModel { get; set; } = new();
     private string? mensagemErro { get; set; }
     private bool isCarregando { get; set; } = false;
     private bool renderizarFormulario { get; set; } = false;
 
     protected override void OnInitialized()
     {
-        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var queryParameters = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        
-        // Verifica se há um token na URL (callback de autenticação externa)
-        var token = queryParameters["token"];
-        if (!string.IsNullOrEmpty(token))
-        {
-            // Autentica automaticamente com o token recebido
-            _ = ProcessarTokenExterno(Uri.UnescapeDataString(token));
-        }
-        else
-        {
-            var error = queryParameters["error"];
-            if (!string.IsNullOrEmpty(error))
-            {
-                mensagemErro = $"Erro na autenticação externa: {Uri.UnescapeDataString(error)}";
-            }
-        }
-        
         renderizarFormulario = true;
-    }
-
-    private async Task ProcessarTokenExterno(string token)
-    {
-        isCarregando = true;
-        try
-        {
-            await ProvedorAuth.MarcarComoAutenticado(token);
-            Navigation.NavigateTo("/", replace: true);
-        }
-        catch (Exception ex)
-        {
-            mensagemErro = "Erro ao processar autenticação externa.";
-        }
-        finally
-        {
-            isCarregando = false;
-        }
     }
 
     private async Task ExecutarLogin()
     {
-        if (!renderizarFormulario) return;
-
-        isCarregando = true;
-        mensagemErro = null;
-
         try
         {
-            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+            mensagemErro = null;
+            isCarregando = true;
 
-            if (response.IsSuccessStatusCode)
+            var result = await _authRepository.ExecutarLoginEmailAsync(loginModel);
+
+            if (result != null)
             {
-                var resultado = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-                if (resultado != null && !string.IsNullOrEmpty(resultado.Token))
-                {
-                    await ProvedorAuth.MarcarComoAutenticado(resultado.Token);
-                    Navigation.NavigateTo("/", replace: true);
-                }
-                else
-                {
-                    mensagemErro = "Resposta de autenticação inválida.";
-                }
+                Navigation.NavigateTo("/dashboard"); 
             }
             else
             {
-                mensagemErro = "Credenciais incorretas ou operador não ativo.";
+                mensagemErro = "Falha na autenticação. Verifique suas credenciais.";
             }
         }
         catch (Exception ex)
         {
-            mensagemErro = "Falha de comunicação com o servidor de manufatura.";
+            mensagemErro = "Erro ao conectar com o servidor: " + ex.Message;
         }
         finally
         {
