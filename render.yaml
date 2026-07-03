@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: yuta-factoryops
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # Connection string do Supabase (Postgres via pooler). Preencha no dashboard do
+      # Render depois do primeiro deploy (Environment > Add Environment Variable).
+      # Formato: Host=...pooler.supabase.com;Database=postgres;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      # Gerado automaticamente pelo Render — usado para assinar os tokens JWT.
+      - key: Jwt__ChaveSecreta
+        generateValue: true
+      # Login social é opcional. Deixe em branco (sync: false, sem preencher no dashboard)
+      # até ter credenciais reais do Google/Microsoft — sem elas, o backend simplesmente
+      # não registra essas rotas.
+      - key: Authentication__Google__ClientId
+        sync: false
+      - key: Authentication__Google__ClientSecret
+        sync: false
+      - key: Authentication__Microsoft__ClientId
+        sync: false
+      - key: Authentication__Microsoft__ClientSecret
+        sync: false

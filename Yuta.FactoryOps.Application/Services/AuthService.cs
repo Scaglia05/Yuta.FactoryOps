@@ -32,37 +32,37 @@ namespace Yuta.FactoryOps.Application.Services
             _configuration = configuration;
         }
 
-        public async Task<object> ValidarLoginEmailAsync(LoginRequestDto payload)
+        public async Task<LoginResultDto> ValidarLoginEmailAsync(LoginRequestDto payload)
         {
             if (payload == null || string.IsNullOrWhiteSpace(payload.Email) || string.IsNullOrWhiteSpace(payload.Senha))
             {
-                return new { Sucesso = false, Mensagem = "E-mail e senha são obrigatórios." };
+                return new LoginResultDto { Sucesso = false, Mensagem = "E-mail e senha são obrigatórios." };
             }
 
             var usuario = await _usuarioRepository.ObterPorEmailAsync(payload.Email);
             if (usuario == null)
             {
-                return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
+                return new LoginResultDto { Sucesso = false, Mensagem = "Credenciais inválidas." };
             }
 
             if (!usuario.EmailConfirmado)
             {
-                return new { Sucesso = false, Status = 403, Mensagem = "Por favor, confirme seu e-mail antes de acessar a plataforma." };
+                return new LoginResultDto { Sucesso = false, Status = 403, Mensagem = "Por favor, confirme seu e-mail antes de acessar a plataforma." };
             }
 
             var senhaValida = await ValidarSenhaAsync(usuario, payload.Senha);
             if (!senhaValida)
             {
-                return new { Sucesso = false, Mensagem = "Credenciais inválidas." };
+                return new LoginResultDto { Sucesso = false, Mensagem = "Credenciais inválidas." };
             }
 
             string tokenReal = _tokenService.GerarTokenJwt(usuario);
 
-            return new
+            return new LoginResultDto
             {
                 Sucesso = true,
                 Token = tokenReal,
-                Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
+                Usuario = new UsuarioResumoDto { Nome = usuario.Nome, Email = usuario.Email, Role = usuario.Role, EmpresaId = usuario.EmpresaId }
             };
         }
 
@@ -74,38 +74,39 @@ namespace Yuta.FactoryOps.Application.Services
             return BCrypt.Net.BCrypt.Verify(password, usuario.PasswordHash);
         }
 
-        public async Task<object?> ValidarLoginExternoAsync(ExternoLoginDto dto)
+        public async Task<LoginResultDto> ValidarLoginExternoAsync(ExternoLoginDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.ProviderKey))
             {
-                return new { Sucesso = false, Mensagem = "Dados de autenticação externa inválidos." };
+                return new LoginResultDto { Sucesso = false, Mensagem = "Dados de autenticação externa inválidos." };
             }
 
             var usuario = await _usuarioRepository.ObterPorEmailAsync(dto.Email);
 
             if (usuario == null)
             {
-                return new { Sucesso = false, Mensagem = "Usuário não encontrado. Entre em contato com o administrador." };
+                return new LoginResultDto { Sucesso = false, Mensagem = "Usuário não encontrado. Entre em contato com o administrador." };
             }
 
             // Verifica se o usuário já tem este provedor vinculado
-            if (usuario.ProvedorAutenticacao != dto.Provider)
+            if (usuario.ProvedorAutenticacao != dto.Provider || usuario.ProviderKey != dto.ProviderKey)
             {
                 // Atualiza para usar o provedor externo
                 usuario.ProvedorAutenticacao = dto.Provider;
+                usuario.ProviderKey = dto.ProviderKey;
                 usuario.EmailConfirmado = true;
                 if (!string.IsNullOrEmpty(dto.FotoUrl)) usuario.FotoUrl = dto.FotoUrl;
-                
+
                 await _usuarioRepository.UpdateAsync(usuario);
             }
 
             string tokenReal = _tokenService.GerarTokenJwt(usuario);
 
-            return new
+            return new LoginResultDto
             {
                 Sucesso = true,
                 Token = tokenReal,
-                Usuario = new { usuario.Nome, usuario.Email, usuario.Role, usuario.EmpresaId }
+                Usuario = new UsuarioResumoDto { Nome = usuario.Nome, Email = usuario.Email, Role = usuario.Role, EmpresaId = usuario.EmpresaId }
             };
         }
     }

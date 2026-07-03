@@ -5,8 +5,8 @@ namespace Yuta.FactoryOps.Domain.Services
 {
     public interface IAuthService
     {
-        Task<object> ValidarLoginEmailAsync(LoginRequestDto payload);
+        Task<LoginResultDto> ValidarLoginEmailAsync(LoginRequestDto payload);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);
-        Task<object?> ValidarLoginExternoAsync(ExternoLoginDto dto);
+        Task<LoginResultDto> ValidarLoginExternoAsync(ExternoLoginDto dto);
     }
 }

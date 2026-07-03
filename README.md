@@ -27,6 +27,19 @@ A plataforma integra-se diretamente ao hardware **Yuta Omega Sense** (sensor int
 
 ---
 
+## ✅ Estado atual da implementação
+
+As seções acima descrevem a visão completa do produto. O que está implementado e funcional hoje no código:
+
+- Login por e-mail/senha (JWT), com usuário admin padrão criado automaticamente (`admin@yuta.com` / `Admin@123`) — veja `CONFIGURACAO_AMBIENTE.md`.
+- CRUD de Usuários e Empresas (telas + API), protegido por login.
+- Dashboard com métricas reais de usuários/empresas (não a análise de ativos/OEE/vibração descrita acima).
+- Deploy via Docker/`render.yaml` para o Render, banco Postgres no Supabase.
+
+Ainda **não** implementado (fazem parte da visão, não do estado atual): login social (Google/Microsoft — scaffolding pronto no backend, falta credenciais reais), Row Level Security no Postgres, monitoramento de ativos/sensores (Yuta Omega Sense), OEE, análise espectral e o módulo de IA prescritiva/RAG.
+
+---
+
 ## ⚖️ Licença e Propriedade Intelectual
 
 Este é um software proprietário e de uso exclusivo da **YUTA LTDA**. Todos os direitos reservados. É estritamente proibida a cópia, modificação ou distribuição não autorizada deste código-fonte conforme detalhado no arquivo `LICENSE`.

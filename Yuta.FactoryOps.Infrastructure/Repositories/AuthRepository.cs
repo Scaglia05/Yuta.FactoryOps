@@ -19,7 +19,7 @@ namespace Yuta.FactoryOps.Infrastructure.Repositories
             _usuarioRepository = usuarioRepository;
         }
 
-        public async Task<object> ExecutarLoginEmailAsync(LoginRequestDto payload)
+        public async Task<LoginResultDto> ExecutarLoginEmailAsync(LoginRequestDto payload)
         {
             return await _authService.ValidarLoginEmailAsync(payload);
         }
@@ -34,7 +34,7 @@ namespace Yuta.FactoryOps.Infrastructure.Repositories
             return await _authService.ValidarSenhaAsync(usuario, password);
         }
 
-        public async Task<object?> ExecutarLoginExternoAsync(ExternoLoginDto dto)
+        public async Task<LoginResultDto> ExecutarLoginExternoAsync(ExternoLoginDto dto)
         {
             return await _authService.ValidarLoginExternoAsync(dto);
         }

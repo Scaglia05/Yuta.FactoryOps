@@ -1,14 +1,25 @@
 # 🚀 Como Rodar o Projeto Yuta.FactoryOps
 
+## ⚠️ Antes de tudo: configure as variáveis de ambiente
+
+O `appsettings.json` não guarda mais segredos (a senha do Supabase estava exposta em texto puro no repositório e foi removida). Antes do primeiro `dotnet run`, siga `CONFIGURACAO_AMBIENTE.md` para configurar a connection string do Supabase e a chave JWT via `dotnet user-secrets`. Sem isso, o app sobe mas login/dashboard não vão funcionar (o banco não vai conectar).
+
 ## ⚡ Resumo Rápido
 
 ```bash
 # Passo 1: Restaurar dependências
 dotnet restore
 
-# Passo 2: Rodar o projeto
+# Passo 2: Configurar segredos locais (uma vez só — veja CONFIGURACAO_AMBIENTE.md)
+dotnet user-secrets init --project Yuta.FactoryOps.Server
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=...;Database=postgres;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true" --project Yuta.FactoryOps.Server
+dotnet user-secrets set "Jwt:ChaveSecreta" "uma-chave-aleatoria-com-mais-de-32-caracteres" --project Yuta.FactoryOps.Server
+
+# Passo 3: Rodar o projeto
 dotnet run --project Yuta.FactoryOps.Server
 ```
+
+Ao subir, o servidor aplica automaticamente as migrations pendentes no Supabase e cria o usuário admin padrão (`admin@yuta.com` / `Admin@123`) se ele ainda não existir — não é preciso rodar `dotnet ef database update` manualmente.
 
 A aplicação estará disponível em: `https://localhost:7183`
 
@@ -134,9 +145,10 @@ dotnet run --project Yuta.FactoryOps.Server --urls "http://localhost:5000"
 ```
 
 ### Erro de Conexão com Supabase
-- Verifique `appsettings.json` no projeto Server
-- Confirme a connectionString está correta
-- Verifique se o banco Supabase está acessível
+- Confirme que você rodou `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "..."` (veja CONFIGURACAO_AMBIENTE.md) — o `appsettings.json` não tem mais a connection string
+- Confirme a connection string está correta (host do pooler, usuário, senha)
+- Verifique se o banco Supabase está acessível e se a senha não foi rotacionada
+- Veja os logs em `logs/log-.txt`: se as migrations não aplicaram, a mensagem de erro aparece lá
 
 ### Erro no Frontend Blazor
 - Limpe o cache do navegador

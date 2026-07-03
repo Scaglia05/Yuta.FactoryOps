@@ -60,12 +60,11 @@ namespace Yuta.FactoryOps.Server.Controllers
             };
 
             var loginResult = await _authRepository.ExecutarLoginExternoAsync(externalLoginDto);
-            var token = loginResult?.GetType().GetProperty("Token")?.GetValue(loginResult, null) as string;
 
-            if (loginResult != null && !string.IsNullOrEmpty(token))
+            if (loginResult.Sucesso && !string.IsNullOrEmpty(loginResult.Token))
             {
                 // Redireciona para o frontend com o token
-                return Redirect($"/login?token={token}&provider=google");
+                return Redirect($"/login?token={loginResult.Token}&provider=google");
             }
 
             // Se o usuário não existe, retorna erro
@@ -112,12 +111,11 @@ namespace Yuta.FactoryOps.Server.Controllers
             };
 
             var loginResult = await _authRepository.ExecutarLoginExternoAsync(externalLoginDto);
-            var token = loginResult?.GetType().GetProperty("Token")?.GetValue(loginResult, null) as string;
 
-            if (loginResult != null && !string.IsNullOrEmpty(token))
+            if (loginResult.Sucesso && !string.IsNullOrEmpty(loginResult.Token))
             {
                 // Redireciona para o frontend com o token
-                return Redirect($"/login?token={token}&provider=microsoft");
+                return Redirect($"/login?token={loginResult.Token}&provider=microsoft");
             }
 
             // Se o usuário não existe, retorna erro

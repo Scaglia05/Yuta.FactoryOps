@@ -9,8 +9,6 @@
 @using Yuta.FactoryOps.Client.Rotas
 @using Yuta.FactoryOps.Client.Security
 @using Yuta.FactoryOps.Domain.DTOs
-@using Yuta.FactoryOps.Application.Interfaces
-@using Yuta.FactoryOps.Application.Validators
 
 @attribute [AllowAnonymous]
 @layout EmptyLayout
@@ -22,7 +20,6 @@
 @inject NavigationManager Navigation
 @inject ProvedorAutenticacaoJwt ProvedorAuth
 @inject IJSRuntime JS
-@inject IAuthRepository _authRepository
 
 <PageTitle>YUTA - Login</PageTitle>
 
@@ -107,15 +104,24 @@
             mensagemErro = null;
             isCarregando = true;
 
-            var result = await _authRepository.ExecutarLoginEmailAsync(loginModel);
+            var response = await Http.PostAsJsonAsync("api/auth/LoginEmailAPI", loginModel);
 
-            if (result != null)
+            if (!response.IsSuccessStatusCode)
             {
-                Navigation.NavigateTo("/dashboard"); 
+                mensagemErro = "Não foi possível conectar ao servidor. Tente novamente em instantes.";
+                return;
+            }
+
+            var resultado = await response.Content.ReadFromJsonAsync<LoginResultDto>();
+
+            if (resultado != null && resultado.Sucesso && !string.IsNullOrEmpty(resultado.Token))
+            {
+                await ProvedorAuth.MarcarComoAutenticado(resultado.Token);
+                Navigation.NavigateTo("/dashboard");
             }
             else
             {
-                mensagemErro = "Falha na autenticação. Verifique suas credenciais.";
+                mensagemErro = resultado?.Mensagem ?? "Falha na autenticação. Verifique suas credenciais.";
             }
         }
         catch (Exception ex)

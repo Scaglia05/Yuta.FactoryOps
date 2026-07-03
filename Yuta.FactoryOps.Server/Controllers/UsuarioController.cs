@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Yuta.FactoryOps.Domain.Entities;
 using Yuta.FactoryOps.Domain.Interfaces;
@@ -6,6 +7,7 @@ namespace Yuta.FactoryOps.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioRepository _usuarioRepository;

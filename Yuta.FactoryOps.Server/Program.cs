@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -28,6 +29,13 @@ try
     // Configurar Serilog
     builder.Host.UseSerilog();
 
+// --- 0. PORTA (Render define a variável de ambiente PORT dinamicamente) ---
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(renderPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+}
+
 // --- 1. CONFIGURAÇÕES COMPONENTES BLAZOR PADRÃO (CORRIGIDO) ---
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()       //  ADICIONADO: Suporte para o modo Server
@@ -35,16 +43,29 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSyncfusionBlazor();
 
-// Configuração flexível de HttpClient para rodar tanto local quanto no Render
+// Configuração flexível de HttpClient para rodar tanto local quanto no Render.
+// Usada pelos componentes InteractiveServer (Login, Dashboard, Empresas, Usuarios) para
+// chamar a própria API do backend. Sempre aponta para o próprio processo (loopback),
+// nunca para um host fixo, então funciona igual local e em produção.
 builder.Services.AddScoped(sp =>
 {
-    var config = sp.GetRequiredService<IConfiguration>();
-    // Se estiver no Render, usa a porta padrão do container (http), caso contrário usa a URL configurada
-    var baseUrl = config["BackendUrl"] ?? (builder.Environment.IsDevelopment() ? "https://localhost:7183" : "http://localhost:8080");
+    string baseUrl;
+    if (!string.IsNullOrWhiteSpace(renderPort))
+    {
+        baseUrl = $"http://localhost:{renderPort}";
+    }
+    else
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        baseUrl = config["BackendUrl"] ?? (builder.Environment.IsDevelopment() ? "https://localhost:7183" : "http://localhost:8080");
+    }
     return new HttpClient { BaseAddress = new Uri(baseUrl) };
 });
 
 builder.Services.AddCascadingAuthenticationState();
+// Necessário tanto para [Authorize] nos Controllers quanto para o AuthorizeRouteView/[Authorize]
+// dos componentes Blazor (InteractiveServer). Sem isso, IAuthorizationService não é resolvido.
+builder.Services.AddAuthorization();
 
 // --- 2. CONFIGURAÇÃO DO BANCO DE DADOS ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -68,10 +89,31 @@ builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJ
 
 builder.Services.AddControllers();
 
-var jwtKey = builder.Configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
+// --- CHAVE JWT: NUNCA hardcoded. Deve vir de configuração (env var Jwt__ChaveSecreta,
+// ou User Secrets em desenvolvimento). Só usamos uma chave de fallback em ambiente de
+// desenvolvimento local, para não travar o "dotnet run" de quem ainda não configurou nada.
+var jwtKey = builder.Configuration["Jwt:ChaveSecreta"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtKey = "ChaveDesenvolvimentoLocalApenasNaoUsarEmProducaoYutaOps32c";
+        Log.Warning("Jwt:ChaveSecreta não configurada. Usando chave de DESENVOLVIMENTO. Configure a variável de ambiente Jwt__ChaveSecreta antes de ir para produção.");
+    }
+    else
+    {
+        throw new InvalidOperationException("Jwt:ChaveSecreta não configurada. Defina a variável de ambiente Jwt__ChaveSecreta antes de iniciar em produção.");
+    }
+
+    // Reescreve a configuração em memória com a chave resolvida (ex.: o fallback de dev),
+    // para que o TokenService (que lê Jwt:ChaveSecreta de forma independente ao assinar
+    // tokens) use exatamente a mesma chave usada aqui para validar — caso contrário os
+    // tokens gerados localmente nunca passariam na validação.
+    builder.Configuration["Jwt:ChaveSecreta"] = jwtKey;
+}
 var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -88,23 +130,50 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ClockSkew = TimeSpan.Zero
     };
-})
-.AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/signin-google";
-})
-.AddMicrosoftAccount(options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
-    options.CallbackPath = "/signin-microsoft";
 });
+
+// Login social (Google/Microsoft): só registrado quando credenciais reais existem
+// (via env vars Authentication__Google__ClientId/ClientSecret etc). Sem isso, os botões
+// continuam ocultos no front-end e essas rotas simplesmente não existem no pipeline.
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/signin-google";
+    });
+}
+
+var microsoftClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
+var microsoftClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(microsoftClientId) && !string.IsNullOrWhiteSpace(microsoftClientSecret))
+{
+    authBuilder.AddMicrosoftAccount(options =>
+    {
+        options.ClientId = microsoftClientId;
+        options.ClientSecret = microsoftClientSecret;
+        options.CallbackPath = "/signin-microsoft";
+    });
+}
 
 var app = builder.Build();
 
 // --- 4. CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES (MIDDLEWARES) ---
+// Necessário atrás do proxy do Render, que termina o TLS e encaminha o protocolo
+// original via cabeçalho — sem isso, UseHttpsRedirection/UseHsts podem entrar em loop.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+// O proxy do Render não está na rede loopback (padrão confiável do ASP.NET Core),
+// então precisamos limpar essas listas para que os cabeçalhos X-Forwarded-* sejam aceitos.
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -135,9 +204,23 @@ app.MapRazorComponents<Yuta.FactoryOps.Client.Pages.App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
 
-// --- 8. SEED DO BANCO DE DADOS ---
+// --- 8. MIGRAÇÃO E SEED DO BANCO DE DADOS ---
+// Aplica migrations pendentes automaticamente e popula empresa/usuário padrão.
+// Isso é o que garante que o Supabase tenha a estrutura e o usuário admin sem
+// precisar rodar `dotnet ef` manualmente.
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<FactoryDbContext>();
+    try
+    {
+        await db.Database.MigrateAsync();
+        Log.Information("Migrações do banco de dados aplicadas com sucesso");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Não foi possível aplicar as migrações do banco de dados. Verifique ConnectionStrings__DefaultConnection. A aplicação vai continuar subindo, mas login/dashboard não vão funcionar até o banco estar acessível.");
+    }
+
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     await seeder.SeedAsync();
 }

@@ -1,9 +1,17 @@
-﻿@using Microsoft.AspNetCore.Components.Routing
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
 @using System.Reflection
 
 <Router AppAssembly="@typeof(Yuta.FactoryOps.Client._Imports).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                @{ Navigation.NavigateTo("/login", forceLoad: true); }
+            </NotAuthorized>
+            <Authorizing>
+                <div style="padding: 40px; text-align: center;">Verificando acesso...</div>
+            </Authorizing>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
@@ -15,4 +23,6 @@
 </Router>
 
 @code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
 }

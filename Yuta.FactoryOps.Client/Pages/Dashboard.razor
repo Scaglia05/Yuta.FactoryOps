@@ -1,5 +1,6 @@
 @page "/dashboard"
 @layout MainLayout
+@attribute [Authorize]
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
@@ -12,6 +13,17 @@
         <h1>Dashboard</h1>
         <p class="subtitle">Visão geral do sistema</p>
     </div>
+
+    @if (isLoading)
+    {
+        <p>Carregando dados...</p>
+    }
+    else if (carregouComErro)
+    {
+        <div class="yuta-alert error-popup" style="margin-bottom: 16px;">
+            Não foi possível carregar os dados do dashboard. Verifique se a API está acessível.
+        </div>
+    }
 
     <div class="metrics-grid">
         <div class="metric-card">
@@ -172,6 +184,7 @@
     private List<Usuario>? usuariosRecentes;
     private List<Empresa>? empresasRecentes;
     private bool isLoading = true;
+    private bool carregouComErro = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,7 +196,8 @@
         try
         {
             isLoading = true;
-            
+            carregouComErro = false;
+
             // Carregar usuários
             var usuariosResponse = await Http.GetFromJsonAsync<List<Usuario>>("api/usuario");
             if (usuariosResponse != null)
@@ -204,7 +218,7 @@
         }
         catch
         {
-            // Tratar erro
+            carregouComErro = true;
         }
         finally
         {

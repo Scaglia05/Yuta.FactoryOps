@@ -7,9 +7,9 @@ namespace Yuta.FactoryOps.Application.Interfaces
 {
     public interface IAuthRepository
     {
-        Task<object> ExecutarLoginEmailAsync(LoginRequestDto payload); 
+        Task<LoginResultDto> ExecutarLoginEmailAsync(LoginRequestDto payload);
         Task<Usuario?> ObterPorEmailAsync(string email);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);
-        Task<object?> ExecutarLoginExternoAsync(ExternoLoginDto dto);
+        Task<LoginResultDto> ExecutarLoginExternoAsync(ExternoLoginDto dto);
     }
 }

@@ -15,7 +15,6 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, ProvedorAutenticacaoJwt>();
 builder.Services.AddScoped<ProvedorAutenticacaoJwt>(provider => (ProvedorAutenticacaoJwt)provider.GetRequiredService<AuthenticationStateProvider>());
-builder.Services.AddScoped<ProvedorAutenticacaoJwt>();
 builder.Services.AddScoped<IDashboardService, DashboardMockService>();
 
 

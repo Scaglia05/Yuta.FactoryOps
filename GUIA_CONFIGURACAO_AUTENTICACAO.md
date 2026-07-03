@@ -65,37 +65,18 @@ Os botões de login com Google e Microsoft não funcionam porque as credenciais 
      - Clique em "Add"
      - **IMPORTANTE**: Copie o valor do secret imediatamente (só aparece uma vez)
 
-### Passo 3: Atualizar appsettings.json
+### Passo 3: Configurar as credenciais (NÃO edite appsettings.json)
 
-No arquivo `D:\YutaFactoryOpsWeb\Yuta.FactoryOps\Yuta.FactoryOps.Server\appsettings.json`, substitua:
+O `appsettings.json` **não guarda mais segredos** — ele foi limpo porque tinha a senha real do Supabase exposta em texto puro no repositório. Configure as credenciais como variáveis de ambiente (veja `CONFIGURACAO_AMBIENTE.md` para o passo a passo completo com `dotnet user-secrets` local e variáveis de ambiente no Render):
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=aws-1-us-east-1.pooler.supabase.com;Database=postgres;Username=postgres.hyyxfprhtsopmmbvvcug;Password=FactoryOps@5432;SSL Mode=Require;Trust Server Certificate=true"
-  },
-  "Authentication": {
-    "Google": {
-      "ClientId": "123456789-abcdefghijklmnop.apps.googleusercontent.com",
-      "ClientSecret": "GOCSPX-SEU_GOOGLE_SECRET_REAL"
-    },
-    "Microsoft": {
-      "ClientId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "ClientSecret": "SEU_MICROSOFT_SECRET_REAL"
-    }
-  },
-  "Jwt": {
-    "ChaveSecreta": "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
 ```
+Authentication__Google__ClientId=123456789-abcdefghijklmnop.apps.googleusercontent.com
+Authentication__Google__ClientSecret=GOCSPX-SEU_GOOGLE_SECRET_REAL
+Authentication__Microsoft__ClientId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+Authentication__Microsoft__ClientSecret=SEU_MICROSOFT_SECRET_REAL
+```
+
+O backend (`Program.cs`) só registra os provedores Google/Microsoft quando essas variáveis estão preenchidas — sem elas, as rotas `/api/externalauth/google` e `/api/externalauth/microsoft` simplesmente não existem, e é por isso que os botões continuam ocultos no Login.
 
 ### Passo 4: Reinciar o Servidor
 

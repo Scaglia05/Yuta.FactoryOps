@@ -22,7 +22,14 @@ namespace Yuta.FactoryOps.Application.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var jwtKey = _configuration["Jwt:ChaveSecreta"] ?? "SuaChaveSuperSecretaComMaisDe32CaracteresYutaOps";
+            // Jwt:ChaveSecreta é resolvida uma única vez em Program.cs (env var em produção,
+            // fallback de dev em desenvolvimento) e gravada de volta na configuração, então
+            // aqui sempre lemos o mesmo valor usado para validar os tokens.
+            var jwtKey = _configuration["Jwt:ChaveSecreta"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException("Jwt:ChaveSecreta não configurada.");
+            }
             var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
             var tokenDescriptor = new SecurityTokenDescriptor

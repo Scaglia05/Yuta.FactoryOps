@@ -91,12 +91,11 @@ A configuração do banco de dados Supabase foi mantida e preservada:
 - **Configuração:** DbContext configurado com retry on failure
 
 ### Configuração Atual
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=aws-1-us-east-1.pooler.supabase.com;Database=postgres;Username=postgres.hyyxfprhtsopmmbvvcug;Password=FactoryOps@5432;SSL Mode=Require;Trust Server Certificate=true"
-  }
-}
+A connection string **não fica mais no `appsettings.json`** (ela era um segredo real exposto em texto puro no repositório). Agora ela é lida da variável de ambiente `ConnectionStrings__DefaultConnection` (ou de `dotnet user-secrets` em desenvolvimento). Veja `CONFIGURACAO_AMBIENTE.md` para o passo a passo.
+
+Formato esperado (mesmo de antes, só que fora do Git):
+```
+Host=<host-do-pooler>.pooler.supabase.com;Database=postgres;Username=<usuario>;Password=<senha>;SSL Mode=Require;Trust Server Certificate=true
 ```
 
 ## Principais Benefícios
