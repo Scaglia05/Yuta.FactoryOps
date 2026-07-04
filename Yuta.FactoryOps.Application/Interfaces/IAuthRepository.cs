@@ -11,5 +11,6 @@ namespace Yuta.FactoryOps.Application.Interfaces
         Task<Usuario?> ObterPorEmailAsync(string email);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);
         Task<LoginResultDto> ExecutarLoginExternoAsync(ExternoLoginDto dto);
+        Task<LoginResultDto> ExecutarCadastroAsync(CadastroRequestDto payload);
     }
 }

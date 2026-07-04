@@ -66,6 +66,69 @@ namespace Yuta.FactoryOps.Application.Services
             };
         }
 
+        public async Task<LoginResultDto> ValidarCadastroAsync(CadastroRequestDto payload)
+        {
+            if (payload == null
+                || string.IsNullOrWhiteSpace(payload.NomeEmpresa)
+                || string.IsNullOrWhiteSpace(payload.RazaoSocial)
+                || string.IsNullOrWhiteSpace(payload.Cnpj)
+                || string.IsNullOrWhiteSpace(payload.NomeUsuario)
+                || string.IsNullOrWhiteSpace(payload.Email)
+                || string.IsNullOrWhiteSpace(payload.Senha))
+            {
+                return new LoginResultDto { Sucesso = false, Mensagem = "Preencha todos os campos obrigatórios." };
+            }
+
+            if (payload.Senha != payload.ConfirmarSenha)
+            {
+                return new LoginResultDto { Sucesso = false, Mensagem = "As senhas não coincidem." };
+            }
+
+            var usuarioExistente = await _usuarioRepository.ObterPorEmailAsync(payload.Email);
+            if (usuarioExistente != null)
+            {
+                return new LoginResultDto { Sucesso = false, Mensagem = "Este e-mail já está cadastrado." };
+            }
+
+            var empresaExistente = await _empresaRepository.ObterPorCnpjAsync(payload.Cnpj);
+            if (empresaExistente != null)
+            {
+                return new LoginResultDto { Sucesso = false, Mensagem = "Este CNPJ já está cadastrado. Solicite acesso a um administrador da empresa." };
+            }
+
+            var empresa = new Empresa
+            {
+                Nome = payload.NomeEmpresa,
+                RazaoSocial = payload.RazaoSocial,
+                Cnpj = payload.Cnpj,
+                Ativa = true,
+                DataCadastro = DateTime.UtcNow
+            };
+            await _empresaRepository.AddAsync(empresa);
+
+            var usuario = new Usuario
+            {
+                EmpresaId = empresa.Id,
+                Nome = payload.NomeUsuario,
+                Email = payload.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(payload.Senha),
+                Role = "Admin",
+                EmailConfirmado = true,
+                ProvedorAutenticacao = "Email",
+                DataCriacao = DateTime.UtcNow
+            };
+            await _usuarioRepository.AddAsync(usuario);
+
+            string token = _tokenService.GerarTokenJwt(usuario);
+
+            return new LoginResultDto
+            {
+                Sucesso = true,
+                Token = token,
+                Usuario = new UsuarioResumoDto { Nome = usuario.Nome, Email = usuario.Email, Role = usuario.Role, EmpresaId = usuario.EmpresaId }
+            };
+        }
+
         public async Task<bool> ValidarSenhaAsync(Usuario usuario, string password)
         {
             if (usuario == null || string.IsNullOrEmpty(usuario.PasswordHash) || string.IsNullOrWhiteSpace(password))

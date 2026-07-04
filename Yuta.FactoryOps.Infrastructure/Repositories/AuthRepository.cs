@@ -38,5 +38,10 @@ namespace Yuta.FactoryOps.Infrastructure.Repositories
         {
             return await _authService.ValidarLoginExternoAsync(dto);
         }
+
+        public async Task<LoginResultDto> ExecutarCadastroAsync(CadastroRequestDto payload)
+        {
+            return await _authService.ValidarCadastroAsync(payload);
+        }
     }
 }

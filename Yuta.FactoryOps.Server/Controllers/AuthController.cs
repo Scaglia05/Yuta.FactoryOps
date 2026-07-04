@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Yuta.FactoryOps.Application.DTOs;
 using Yuta.FactoryOps.Domain.Entities;
 using Yuta.FactoryOps.Application.Interfaces;
@@ -40,6 +41,19 @@ namespace Yuta.FactoryOps.Server.Controllers
                 return Ok(resultadoComEmpresa);
             }
 
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Cadastro público (sem autenticação): cria a Empresa e o Usuário administrador
+        /// que primeiro acessa o sistema. Usado pela tela "/cadastro" quando ainda não
+        /// existe nenhum registro no banco de dados.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost(LoginAPI.CadastroAPI)]
+        public async Task<IActionResult> Cadastrar([FromBody] CadastroRequestDto payload)
+        {
+            var result = await _authRepository.ExecutarCadastroAsync(payload);
             return Ok(result);
         }
     }

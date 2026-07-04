@@ -1,0 +1,162 @@
+@page "/cadastro"
+
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@using Yuta.FactoryOps.Client.Security
+@using Yuta.FactoryOps.Domain.DTOs
+
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+@rendermode InteractiveServer
+
+<link href="CSS/Login.css" rel="stylesheet" />
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ProvedorAutenticacaoJwt ProvedorAuth
+
+<PageTitle>YUTA - Cadastro</PageTitle>
+
+<div class="yuta-login-container">
+    <div class="yuta-login-card">
+
+        <div class="yuta-brand">
+            <h1>YUTA</h1>
+            <p>Criar conta e empresa</p>
+        </div>
+
+        @if (renderizarFormulario)
+        {
+            <EditForm Model="@cadastroModel" OnValidSubmit="ExecutarCadastro" FormName="cadastroForm">
+                <DataAnnotationsValidator />
+
+                @if (!string.IsNullOrEmpty(mensagemErro))
+                {
+                    <div class="yuta-alert error-popup">
+                        <span>⚠️</span> @mensagemErro
+                    </div>
+                }
+
+                <div class="yuta-form-fields-box">
+
+                    <div class="form-group">
+                        <label for="nomeEmpresa">Nome da Empresa</label>
+                        <InputText id="nomeEmpresa" class="input-control" @bind-Value="@cadastroModel.NomeEmpresa" placeholder="Ex: Yuta Indústria" />
+                        <ValidationMessage For="@(() => cadastroModel.NomeEmpresa)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="razaoSocial">Razão Social</label>
+                        <InputText id="razaoSocial" class="input-control" @bind-Value="@cadastroModel.RazaoSocial" placeholder="Ex: Yuta Indústria e Comércio Ltda" />
+                        <ValidationMessage For="@(() => cadastroModel.RazaoSocial)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cnpj">CNPJ</label>
+                        <InputText id="cnpj" class="input-control" @bind-Value="@cadastroModel.Cnpj" placeholder="Somente números (14 dígitos)" maxlength="14" />
+                        <ValidationMessage For="@(() => cadastroModel.Cnpj)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nomeUsuario">Seu Nome</label>
+                        <InputText id="nomeUsuario" class="input-control" @bind-Value="@cadastroModel.NomeUsuario" placeholder="Nome completo" />
+                        <ValidationMessage For="@(() => cadastroModel.NomeUsuario)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <InputText id="email" class="input-control" @bind-Value="@cadastroModel.Email" placeholder="nome@yuta.com" />
+                        <ValidationMessage For="@(() => cadastroModel.Email)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="senha">Senha</label>
+                        <InputText id="senha" type="password" class="input-control" @bind-Value="@cadastroModel.Senha" placeholder="••••••••" />
+                        <ValidationMessage For="@(() => cadastroModel.Senha)" class="text-danger" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmarSenha">Confirmar Senha</label>
+                        <InputText id="confirmarSenha" type="password" class="input-control" @bind-Value="@cadastroModel.ConfirmarSenha" placeholder="••••••••" />
+                        <ValidationMessage For="@(() => cadastroModel.ConfirmarSenha)" class="text-danger" />
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn-yuta-submit" disabled="@isCarregando">
+                    @if (isCarregando)
+                    {
+                        <div class="spinner"></div> <span>Criando cadastro...</span>
+                    }
+                    else
+                    {
+                        <span>CRIAR CONTA</span>
+                    }
+                </button>
+            </EditForm>
+
+            <div class="yuta-footer-links">
+                <a href="/login">Já tem uma conta? Entrar</a>
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding: 20px; color: #a29bfe;">
+                <div class="spinner" style="margin: 0 auto 10px auto;"></div>
+                Sincronizando terminais...
+            </div>
+        }
+
+    </div>
+</div>
+
+@code {
+    private CadastroRequestDto cadastroModel { get; set; } = new();
+    private string? mensagemErro { get; set; }
+    private bool isCarregando { get; set; } = false;
+    private bool renderizarFormulario { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        renderizarFormulario = true;
+    }
+
+    private async Task ExecutarCadastro()
+    {
+        try
+        {
+            mensagemErro = null;
+            isCarregando = true;
+
+            var response = await Http.PostAsJsonAsync("api/auth/CadastroAPI", cadastroModel);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                mensagemErro = "Não foi possível conectar ao servidor. Tente novamente em instantes.";
+                return;
+            }
+
+            var resultado = await response.Content.ReadFromJsonAsync<LoginResultDto>();
+
+            if (resultado != null && resultado.Sucesso && !string.IsNullOrEmpty(resultado.Token))
+            {
+                await ProvedorAuth.MarcarComoAutenticado(resultado.Token);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                mensagemErro = resultado?.Mensagem ?? "Não foi possível concluir o cadastro.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao conectar com o servidor: " + ex.Message;
+        }
+        finally
+        {
+            isCarregando = false;
+        }
+    }
+}

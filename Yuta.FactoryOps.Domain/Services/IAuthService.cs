@@ -8,5 +8,6 @@ namespace Yuta.FactoryOps.Domain.Services
         Task<LoginResultDto> ValidarLoginEmailAsync(LoginRequestDto payload);
         Task<bool> ValidarSenhaAsync(Usuario usuario, string password);
         Task<LoginResultDto> ValidarLoginExternoAsync(ExternoLoginDto dto);
+        Task<LoginResultDto> ValidarCadastroAsync(CadastroRequestDto payload);
     }
 }
