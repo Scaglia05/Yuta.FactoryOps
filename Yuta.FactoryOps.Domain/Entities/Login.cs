@@ -21,5 +21,6 @@ namespace Yuta.FactoryOps.Domain.Entities
         public const string LoginGooglelAPI = nameof(LoginGooglelAPI);
         public const string ConfirmarEmail = nameof(ConfirmarEmail);
         public const string GerarTokenConfirmacao = nameof(GerarTokenConfirmacao);
+        public const string CadastroAPI = nameof(CadastroAPI);
     }
 }
