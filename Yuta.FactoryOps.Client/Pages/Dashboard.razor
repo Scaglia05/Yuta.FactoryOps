@@ -1,228 +1,844 @@
 @page "/dashboard"
-@layout MainLayout
+@layout EmptyLayout
 @attribute [Authorize]
+@using Yuta.FactoryOps.Client.FactoryOps
 
-@inject HttpClient Http
-@inject NavigationManager Navigation
-@using Yuta.FactoryOps.Domain.Entities
+<PageTitle>FactoryOps — Omega Sense</PageTitle>
 
-<PageTitle>Dashboard - YUTA</PageTitle>
+<div class="fops-app" data-theme="@_theme">
 
-<div class="dashboard-container">
-    <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <p class="subtitle">Visão geral do sistema</p>
-    </div>
-
-    @if (isLoading)
-    {
-        <p>Carregando dados...</p>
-    }
-    else if (carregouComErro)
-    {
-        <div class="yuta-alert error-popup" style="margin-bottom: 16px;">
-            Não foi possível carregar os dados do dashboard. Verifique se a API está acessível.
-        </div>
-    }
-
-    <div class="metrics-grid">
-        <div class="metric-card">
-            <div class="metric-icon metric-icon-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="logo"><img src="img/yuta_logo.png" alt="Yuta" height="24" style="margin-right:4px" />FactoryOps</div>
+        <div class="tb-sep"></div>
+        <div class="tb-tag"><b>Linha 1</b> — <span>Planta Campinas</span></div>
+        <div class="tb-sep"></div>
+        <div class="badge badge-ok"><div class="dot-pulse dot-ok"></div>ONLINE</div>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" @onclick="OpenFaultModal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+            <span>Injetar Falha</span>
+        </button>
+        <button class="tb-btn" @onclick="ExportReportAsync">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+            <span>Relatório</span>
+        </button>
+        <div class="tb-right">
+            <button class="tb-btn" @onclick="ToggleTheme">🌓 <span>Tema</span></button>
+            <button class="tb-btn" @onclick="OpenAboutModal">ℹ️ <span>Sobre</span></button>
+            <div class="dropdown">
+                <button class="tb-btn" @onclick="ToggleAdminMenu">⚙️ <span>Administração</span></button>
+                <div class="dropdown-menu @(_adminMenuOpen ? "open" : "")">
+                    <div class="dd-item" @onclick='() => Navigation.NavigateTo("/admin")'>📊 Painel Administrativo</div>
+                    <div class="dd-item" @onclick='() => Navigation.NavigateTo("/usuarios")'>👥 Usuários</div>
+                    <div class="dd-item" @onclick='() => Navigation.NavigateTo("/empresas")'>🏢 Empresas</div>
+                    <div class="dd-item" @onclick='() => Navigation.NavigateTo("/configuracoes")'>🔧 Configurações</div>
+                </div>
             </div>
-            <div class="metric-content">
-                <h3>Total de Usuários</h3>
-                <p class="metric-value">@totalUsuarios</p>
-                <span class="metric-trend metric-trend-positive">+12% este mês</span>
+            <div class="tb-sep"></div>
+            <div class="clock-box">
+                <div class="clock-time">@_now.ToString("HH:mm:ss")</div>
+                <div class="clock-date">@_now.ToString("ddd, dd/MM")</div>
             </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon metric-icon-purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                </svg>
-            </div>
-            <div class="metric-content">
-                <h3>Total de Empresas</h3>
-                <p class="metric-value">@totalEmpresas</p>
-                <span class="metric-trend metric-trend-positive">+5% este mês</span>
-            </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon metric-icon-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-            </div>
-            <div class="metric-content">
-                <h3>Usuários Ativos</h3>
-                <p class="metric-value">@usuariosAtivos</p>
-                <span class="metric-trend metric-trend-positive">+8% este mês</span>
-            </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon metric-icon-orange">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-            </div>
-            <div class="metric-content">
-                <h3>Registros Hoje</h3>
-                <p class="metric-value">@registrosHoje</p>
-                <span class="metric-trend metric-trend-neutral">+2% ontem</span>
-            </div>
+            <div class="avatar">YU</div>
         </div>
     </div>
 
-    <div class="dashboard-content">
-        <div class="content-section">
-            <div class="section-header">
-                <h2>Usuários Recentes</h2>
-                <a href="/usuarios" class="view-all">Ver todos →</a>
-            </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Email</th>
-                            <th>Empresa</th>
-                            <th>Status</th>
-                            <th>Data Cadastro</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (usuariosRecentes != null && usuariosRecentes.Count > 0)
-                        {
-                            @foreach (var usuario in usuariosRecentes.Take(5))
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sb-header"><div class="sb-title">Ativos — Linha 1</div></div>
+        <div style="flex:1">
+            @foreach (var a in _assets)
+            {
+                <div class="asset-item @(a.Id == _selectedAssetId ? "active" : "")" @onclick="() => SelectAsset(a.Id)">
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <img src="@a.Img" alt="@a.Name" class="ai-thumb" style="cursor:pointer" @onclick="() => OpenAssetDetail(a.Id)" @onclick:stopPropagation title="Ver detalhes do ativo" />
+                        <div style="flex:1;min-width:0">
+                            <div class="ai-meta">
+                                <span class="ai-name" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@a.Name</span>
+                                <div style="display:flex;align-items:center;gap:4px">
+                                    <div class="ai-dot @AssetDotClass(a.Status)"></div>
+                                    <div @onclick="() => OpenAssetDetail(a.Id)" @onclick:stopPropagation style="width:14px;height:14px;border-radius:50%;background:var(--pu-dim);border:1px solid var(--pu3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--pu2);cursor:pointer;font-weight:700;flex-shrink:0" title="Informações do ativo">i</div>
+                                </div>
+                            </div>
+                            <div class="ai-type">@a.Type</div>
+                        </div>
+                    </div>
+                    <div class="ai-meta" style="margin-top:4px">
+                        <div class="spark" style="height:16px;flex:1;margin-right:8px">
+                            @foreach (var h in SidebarSpark(a))
                             {
-                                <tr>
-                                    <td>@usuario.Nome</td>
-                                    <td>@usuario.Email</td>
-                                    <td>@usuario.EmpresaId</td>
-                                    <td>
-                                        <span class="status-badge @(usuario.EmailConfirmado ? "status-active" : "status-pending")">
-                                            @(usuario.EmailConfirmado ? "Ativo" : "Pendente")
-                                        </span>
-                                    </td>
-                                    <td>@usuario.DataCriacao.ToString("dd/MM/yyyy")</td>
-                                </tr>
+                                <div class="spk-b" style="height:@(h)px;background:@(a.Oee >= 80 ? "#1a8c4e" : a.Oee >= 65 ? "#c8941a" : "#8b1515");opacity:.7;flex:1;border-radius:1px"></div>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="no-data">Nenhum usuário encontrado</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </div>
+                        <span class="mono ai-oee" style="color:@OeeTextColor(a.Oee);font-size:10px">@(a.Oee)%</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="sb-divider"></div>
+        <div class="sb-section">
+            <div class="sb-sect-title">Modo de Aquisição</div>
+            <div class="acq-toggle">
+                @for (int i = 0; i < _acqModes.Count; i++)
+                {
+                    var idx = i; var m = _acqModes[i];
+                    <div class="acq-mode @(m.Active ? "active" : "")" @onclick="() => ToggleAcqAsync(idx)">
+                        <div><div class="acq-mode-label">@m.Label</div><div style="font-size:9px;color:var(--text3)">@m.Sub</div></div>
+                        <div class="switch @(m.Active ? "on" : "")"></div>
+                    </div>
+                }
             </div>
         </div>
 
-        <div class="content-section">
-            <div class="section-header">
-                <h2>Empresas Recentes</h2>
-                <a href="/empresas" class="view-all">Ver todas →</a>
+        <div class="sb-divider"></div>
+        <div class="sb-section">
+            <div class="sb-sect-title">Rede Mesh</div>
+            @foreach (var a in _assets)
+            {
+                var sig = MeshSignal(a);
+                var c = sig > 85 ? "var(--green2)" : sig > 70 ? "var(--gold2)" : "var(--red2)";
+                <div class="mesh-node">
+                    <div class="mesh-dot" style="background:@c"></div>
+                    <div style="flex:1"><div class="mesh-label">@a.Name</div><div class="mesh-bar"><div class="mesh-bar-fill" style="width:@(sig)%;background:@c"></div></div></div>
+                    <div class="mesh-val">@(sig)%</div>
+                </div>
+            }
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:8px">
+                <span>Gateway</span><span class="mono" style="color:var(--green2)">YUT-GW-01</span>
             </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>CNPJ</th>
-                            <th>Status</th>
-                            <th>Data Cadastro</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (empresasRecentes != null && empresasRecentes.Count > 0)
-                        {
-                            @foreach (var empresa in empresasRecentes.Take(5))
-                            {
-                                <tr>
-                                    <td>@empresa.Nome</td>
-                                    <td>@empresa.Cnpj</td>
-                                    <td>
-                                        <span class="status-badge @(empresa.Ativa ? "status-active" : "status-inactive")">
-                                            @(empresa.Ativa ? "Ativa" : "Inativa")
-                                        </span>
-                                    </td>
-                                    <td>@empresa.DataCadastro.ToString("dd/MM/yyyy")</td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="4" class="no-data">Nenhuma empresa encontrada</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+                <span>Freq.</span><span class="mono">915 MHz</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+                <span>Protocolo</span><span class="mono">802.15.4g</span>
+            </div>
+        </div>
+
+        <div class="sb-divider"></div>
+        <div class="sb-section">
+            <div class="sb-sect-title">OEE Global — Linha</div>
+            <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--pu2)">@(LineOee)%</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">Overall Equipment Effectiveness</div>
+            <div style="height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:8px"><div style="height:100%;border-radius:2px;background:var(--pu);width:@(LineOee)%"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px">
+                <div style="text-align:center"><div style="font-size:9px;color:var(--text3)">Meta</div><div class="mono" style="font-size:12px;color:var(--gold2)">85%</div></div>
+                <div style="text-align:center"><div style="font-size:9px;color:var(--text3)">Turno</div><div class="mono" style="font-size:12px">@(LineOee - 3)%</div></div>
+                <div style="text-align:center"><div style="font-size:9px;color:var(--text3)">Δ Ontem</div><div class="mono" style="font-size:12px;color:@(LineOee - 79 >= 0 ? "var(--green2)" : "var(--red2)")">@(LineOee - 79 > 0 ? "+" : "")@(LineOee - 79)%</div></div>
             </div>
         </div>
     </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="tabs">
+            <div class="tab @(_activeTab == "overview" ? "active" : "")" @onclick='() => ShowTab("overview")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
+                Visão Geral
+            </div>
+            <div class="tab @(_activeTab == "fft" ? "active" : "")" @onclick='() => ShowTab("fft")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+                Espectro FFT
+            </div>
+            <div class="tab @(_activeTab == "history" ? "active" : "")" @onclick='() => ShowTab("history")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+                Histórico OEE
+            </div>
+            <div class="tab @(_activeTab == "map" ? "active" : "")" @onclick='() => ShowTab("map")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
+                Mapa de Saúde
+            </div>
+            <div class="tab @(_activeTab == "config" ? "active" : "")" @onclick='() => ShowTab("config")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93L17.66 6.34M6.34 17.66L4.93 19.07M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12h2M20 12h2M12 2v2M12 20v2" /></svg>
+                Limiares
+            </div>
+            <div class="tab @(_activeTab == "energy" ? "active" : "")" @onclick='() => ShowTab("energy")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                Energia
+            </div>
+            <div class="tab @(_activeTab == "maint" ? "active" : "")" @onclick='() => ShowTab("maint")'>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>
+                Manutenção
+            </div>
+            <div class="tab @(_activeTab == "alerts" ? "active" : "")" @onclick='() => ShowTab("alerts")' style="margin-left:auto">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" /></svg>
+                Alertas <span class="tab-badge">@AlertBadgeCount</span>
+            </div>
+        </div>
+
+        <!-- TAB: OVERVIEW -->
+        <div class="tab-content @(_activeTab == "overview" ? "active" : "")">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center">
+                    <img src="@CurrentAsset.Img" alt="@CurrentAsset.Name" class="asset-hero" style="margin-right:12px;cursor:pointer" @onclick="() => OpenAssetDetail(CurrentAsset.Id)" />
+                    <div>
+                        <div style="font-size:16px;font-weight:600;letter-spacing:-.3px">@CurrentAsset.Name</div>
+                        <div style="font-size:11px;color:var(--text3);margin-top:2px">@CurrentAsset.Type — Sensor: YUT-@(CurrentAsset.Id)01 — Nó Mesh #@CurrentAsset.Id</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <div class="badge @StatusBadgeClass(CurrentAsset.Status)"><div class="dot-pulse @StatusDotClass(CurrentAsset.Status)"></div>@StatusLabel(CurrentAsset.Status)</div>
+                    <div style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">sync: @_now.ToString("HH:mm:ss")</div>
+                </div>
+            </div>
+
+            <div class="g-21">
+                <div class="card">
+                    <div class="card-head"><div class="card-title">OEE — Eficiência Global</div></div>
+                    <div class="oee-wrap">
+                        <div class="oee-canvas-wrap">
+                            <canvas id="oeeRing" width="110" height="110"></canvas>
+                            <div class="oee-center"><div class="oee-num">@(CurrentAsset.Oee)%</div><div class="oee-lbl">OEE</div></div>
+                        </div>
+                        <div style="flex:1">
+                            @foreach (var (label, val, color) in new[] { ("Disponibilidade", CurrentAsset.Avail, "#22c55e"), ("Desempenho", CurrentAsset.Perf, "#9b45d8"), ("Qualidade", CurrentAsset.Qual, "#c8941a") })
+                            {
+                                <div class="bar-row">
+                                    <div class="bar-label"><span>@label</span><span class="mono" style="color:@color">@(val)%</span></div>
+                                    <div class="bar-track"><div class="bar-fill" style="width:@(val)%;background:@color"></div></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Estado do Processo</div><div style="font-size:9px;font-family:'Space Mono',monospace;color:var(--pu2)">Ciclo #@(CurrentAsset.Cycles.ToString("N0"))</div></div>
+                    <div>
+                        @for (int i = 0; i < CurrentAsset.Process.Count; i++)
+                        {
+                            var idx = i;
+                            var cls = idx < CurrentAsset.CurrentState ? "done" : idx == CurrentAsset.CurrentState ? "active" : "pending";
+                            var icon = idx < CurrentAsset.CurrentState ? "✓" : idx == CurrentAsset.CurrentState ? "▶" : "○";
+                            <div class="proc-step @cls"><div class="proc-icon @cls">@icon</div>@CurrentAsset.Process[idx]
+                                @if (cls == "active")
+                                {
+                                    <span class="proc-dur" style="color:var(--pu2)">em andamento</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="g4">
+                <div class="kpi @HealthKpiClass(CurrentAsset.Health)">
+                    <div class="kpi-label">Saúde do Ativo</div>
+                    <div class="kpi-val">@(CurrentAsset.Health)<span class="kpi-unit">%</span></div>
+                    <div style="height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:6px"><div style="height:100%;width:@(CurrentAsset.Health)%;border-radius:2px;background:@HealthColor(CurrentAsset.Health)"></div></div>
+                </div>
+                <div class="kpi @VibKpiClass(CurrentAsset)">
+                    <div class="kpi-label">Vibração RMS</div>
+                    <div class="kpi-val">@(CurrentAsset.Rms.ToString("0.00"))<span class="kpi-unit"> g</span></div>
+                    <div class="kpi-sub">Base: @(CurrentAsset.VibBase)g</div>
+                </div>
+                <div class="kpi @TempKpiClass(CurrentAsset)">
+                    <div class="kpi-label">Temp. Rolamento</div>
+                    <div class="kpi-val">@(CurrentAsset.Bearing.ToString("0.0"))<span class="kpi-unit">°C</span></div>
+                    <div class="kpi-sub">Limite: @(_thresholds.Temp.Crit)°C</div>
+                </div>
+                <div class="kpi kpi-pu">
+                    <div class="kpi-label">Ciclos / Hora</div>
+                    <div class="kpi-val">@(Math.Round(3600 / (30 + _rng.NextDouble() * 8)))<span class="kpi-unit"> c/h</span></div>
+                    <div class="kpi-sub">Δ Turno: <span style="color:var(--green2)">+3%</span></div>
+                </div>
+            </div>
+
+            <div class="g2">
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Vibração RMS</div><div class="mono" style="font-size:10px;color:var(--text3)">@(CurrentAsset.Rms.ToString("0.000")) g</div></div>
+                    <div class="chart-wrap" style="height:130px"><canvas id="vibChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Temperatura Rolamento</div><div class="mono" style="font-size:10px;color:var(--text3)">@(CurrentAsset.Bearing.ToString("0.0"))°C</div></div>
+                    <div class="chart-wrap" style="height:130px"><canvas id="tempChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: FFT -->
+        <div class="tab-content @(_activeTab == "fft" ? "active" : "")">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">Análise Espectral FFT — Alta Frequência</div>
+                    <button class="card-action" @onclick="TriggerHighFreqAsync">▶ Adquirir</button>
+                </div>
+                <div class="chart-wrap" style="height:200px"><canvas id="fftChart"></canvas></div>
+                <div class="g4" style="margin-top:12px">
+                    <div class="kpi kpi-pu"><div class="kpi-label">Pico Máximo</div><div class="kpi-val" style="font-size:16px">@(_fftMax.ToString("0.000"))<span class="kpi-unit"> g</span></div></div>
+                    <div class="kpi kpi-gold"><div class="kpi-label">Freq. Dominante</div><div class="kpi-val" style="font-size:16px">@(_fftPeakFreq)<span class="kpi-unit"> Hz</span></div></div>
+                    <div class="kpi @(_fftMax > 0.4 ? "kpi-red" : "kpi-green")"><div class="kpi-label">Curtose</div><div class="kpi-val" style="font-size:16px">@(_fftKurtosis.ToString("0.00"))</div></div>
+                    <div class="kpi kpi-pu"><div class="kpi-label">SNR</div><div class="kpi-val" style="font-size:16px">@(_fftSnr.ToString("0.0"))<span class="kpi-unit"> dB</span></div></div>
+                </div>
+            </div>
+            <div class="g2">
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Detecção de Harmônicos</div></div>
+                    @foreach (var h in _harmonics)
+                    {
+                        <div class="alert-item alert-info" style="margin-bottom:4px">
+                            <div class="alert-dot" style="background:var(--pu2);margin-top:4px"></div>
+                            <div><div class="alert-msg">@(h.N)× RPM — @(h.Freq.ToString("0.0")) Hz</div>
+                                <div class="alert-meta"><span>Amp: @(h.Amp.ToString("0.000")) g</span><span>@h.Label</span></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Diagnóstico Espectral</div></div>
+                    @foreach (var d in _spectralDiag)
+                    {
+                        <div class="alert-item alert-@d.Sev" style="margin-bottom:5px">
+                            <div class="alert-dot ad-@d.Sev"></div>
+                            <div><div class="alert-msg">@d.Msg</div><div class="alert-meta">@d.Rec</div></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: HISTORY -->
+        <div class="tab-content @(_activeTab == "history" ? "active" : "")">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">OEE por Turno — Últimos 7 Dias</div>
+                    <select @onchange="OnHistoryFilterChanged" style="background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text2);font-size:10px;padding:3px 6px;outline:none">
+                        <option>Todos os ativos</option>
+                        @foreach (var a in _assets)
+                        {
+                            <option>@a.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="chart-wrap" style="height:220px"><canvas id="histChart"></canvas></div>
+            </div>
+            <div class="g3">
+                <div class="card"><div class="card-head"><div class="card-title">Disponibilidade Acum.</div></div><div class="chart-wrap" style="height:120px"><canvas id="availChart"></canvas></div></div>
+                <div class="card"><div class="card-head"><div class="card-title">Paradas por Categoria</div></div><div class="chart-wrap" style="height:120px"><canvas id="stopChart"></canvas></div></div>
+                <div class="card"><div class="card-head"><div class="card-title">Ciclos por Turno</div></div><div class="chart-wrap" style="height:120px"><canvas id="cycleChart"></canvas></div></div>
+            </div>
+        </div>
+
+        <!-- TAB: HEALTH MAP -->
+        <div class="tab-content @(_activeTab == "map" ? "active" : "")">
+            <div class="g2">
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Mapa de Saúde dos Ativos</div><div style="font-size:9px;color:var(--text3)">Componente × Severidade</div></div>
+                    <div style="font-size:10px;color:var(--text3);margin-bottom:8px">Componentes de: <b style="color:var(--pu2)">@CurrentAsset.Name</b></div>
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                        @foreach (var (comp, score) in CurrentAsset.Components)
+                        {
+                            <div style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px;border-radius:5px;border:1px solid var(--border2)" @onclick="() => ShowMapDetail(comp, score, CurrentAsset.Name)">
+                                <div style="width:36px;height:36px;border-radius:5px;background:@ComponentColor(score);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,.9);flex-shrink:0">@(score)%</div>
+                                <div style="flex:1">
+                                    <div style="font-size:11px;color:var(--text2)">@ComponentLabel(comp)</div>
+                                    <div style="height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:4px"><div style="height:100%;width:@(score)%;background:@ComponentColor(score);border-radius:2px"></div></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Detalhamento — <span style="color:var(--pu2)">@(_mapSelectedComponent != null ? $"{_mapSelectedAssetName} — {_mapSelectedComponent}" : "Selecione um ativo")</span></div></div>
+                    @if (_mapSelectedComponent == null)
+                    {
+                        <div style="color:var(--text3);font-size:11px;padding:20px 0">Clique em uma célula do mapa para ver detalhes</div>
+                    }
+                    else
+                    {
+                        var c = ComponentTextColor(_mapSelectedScore);
+                        var recs = _mapSelectedScore >= 85
+                            ? new[] { "Continuar monitoramento periódico", "Próxima inspeção em 30 dias" }
+                            : _mapSelectedScore >= 65
+                                ? new[] { "Inspecionar visualmente na próxima oportunidade", "Monitoramento intensificado (2× freq.)", "Avaliar lubrificação" }
+                                : new[] { "Intervenção imediata recomendada", "Substituição preventiva planejada", "Parada programada solicitada" };
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                            <div style="font-size:32px;font-weight:700;font-family:'Space Mono',monospace;color:@c">@(_mapSelectedScore)%</div>
+                            <div><div style="font-size:12px;font-weight:500">@ComponentLabel(_mapSelectedComponent)</div><div style="font-size:10px;color:var(--text3)">Score de saúde</div></div>
+                        </div>
+                        <div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Recomendações</div>
+                        @foreach (var r in recs)
+                        {
+                            <div style="display:flex;gap:6px;margin-bottom:5px;font-size:11px;color:var(--text2)"><div style="color:var(--pu2);flex-shrink:0">›</div>@r</div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><div class="card-title">Timeline de Eventos — 24h</div></div>
+                @foreach (var e in TimelineEvents)
+                {
+                    <div class="tl-item">
+                        <div class="tl-time">@e.Time</div>
+                        <div class="tl-dot-wrap"><div class="tl-dot" style="background:@e.Color"></div></div>
+                        <div class="tl-text">@e.Text</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- TAB: CONFIG -->
+        <div class="tab-content @(_activeTab == "config" ? "active" : "")">
+            <div class="g2">
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Limiares de Vibração</div></div>
+                    <div class="thresh-item">
+                        <div class="thresh-label">Alerta Amarelo <span class="thresh-val">@(_thresholds.Vib.Warn) g</span></div>
+                        <input type="range" min="0.5" max="8" step="0.1" value="@_thresholds.Vib.Warn" @oninput='e => _thresholds.Vib.Warn = ParseDouble(e.Value)' />
+                    </div>
+                    <div class="thresh-item">
+                        <div class="thresh-label">Crítico Vermelho <span class="thresh-val">@(_thresholds.Vib.Crit) g</span></div>
+                        <input type="range" min="1" max="15" step="0.1" value="@_thresholds.Vib.Crit" @oninput='e => _thresholds.Vib.Crit = ParseDouble(e.Value)' />
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><div class="card-title">Limiares de Temperatura</div></div>
+                    <div class="thresh-item">
+                        <div class="thresh-label">Alerta Amarelo <span class="thresh-val">@(_thresholds.Temp.Warn)°C</span></div>
+                        <input type="range" min="40" max="90" step="1" value="@_thresholds.Temp.Warn" @oninput='e => _thresholds.Temp.Warn = ParseDouble(e.Value)' />
+                    </div>
+                    <div class="thresh-item">
+                        <div class="thresh-label">Crítico Vermelho <span class="thresh-val">@(_thresholds.Temp.Crit)°C</span></div>
+                        <input type="range" min="50" max="110" step="1" value="@_thresholds.Temp.Crit" @oninput='e => _thresholds.Temp.Crit = ParseDouble(e.Value)' />
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><div class="card-title">Parâmetros de Aquisição</div></div>
+                <div class="g3">
+                    <div class="kpi kpi-pu"><div class="kpi-label">Freq. Baixa (Processo)</div><div class="kpi-val" style="font-size:16px">200<span class="kpi-unit"> Hz</span></div><input type="range" min="50" max="500" step="10" value="200" style="margin-top:8px" /></div>
+                    <div class="kpi kpi-gold"><div class="kpi-label">Freq. Alta (PdM)</div><div class="kpi-val" style="font-size:16px">32<span class="kpi-unit"> kHz</span></div><input type="range" min="8" max="64" step="8" value="32" style="margin-top:8px" /></div>
+                    <div class="kpi kpi-green"><div class="kpi-label">Intervalo Sync</div><div class="kpi-val" style="font-size:16px">1.2<span class="kpi-unit"> s</span></div><input type="range" min="0.5" max="10" step="0.5" value="1.2" style="margin-top:8px" /></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="fault-btn" @onclick="OpenFaultModal">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                    Injetar Falha para Teste
+                </button>
+                <button class="export-btn" @onclick="ExportReportAsync">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+                    Exportar Relatório de Configuração
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: ALERTS -->
+        <div class="tab-content @(_activeTab == "alerts" ? "active" : "")">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;gap:8px">
+                    @foreach (var f in new[] { "all", "crit", "warn", "info" })
+                    {
+                        <button class="tb-btn" @onclick="() => FilterAlerts(f)" style="@(f == _alertFilter ? "border-color:var(--pu3);color:var(--pu2)" : "")">@(f == "all" ? "Todos" : f == "crit" ? "Críticos" : f == "warn" ? "Avisos" : "Info")</button>
+                    }
+                </div>
+                <button class="tb-btn" @onclick="ClearAlertsAsync">Limpar todos</button>
+            </div>
+            @if (!FilteredAlerts.Any())
+            {
+                <div style="color:var(--text3);font-size:11px;padding:20px 0;text-align:center">Nenhum alerta no filtro selecionado</div>
+            }
+            else
+            {
+                @foreach (var al in FilteredAlerts)
+                {
+                    <div class="alert-item alert-@al.Sev">
+                        <div class="alert-dot ad-@al.Sev"></div>
+                        <div style="flex:1">
+                            <div class="alert-msg">@al.Msg</div>
+                            <div class="alert-meta"><span>@al.Asset</span><span>@al.Time</span></div>
+                            <div style="font-size:10px;color:var(--text2);margin-top:4px;line-height:1.4">@al.Detail</div>
+                        </div>
+                        <button @onclick="() => DismissAlertAsync(al.Id)" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:0 4px">×</button>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- TAB: ENERGY -->
+        <div class="tab-content @(_activeTab == "energy" ? "active" : "")">
+            <div class="card">
+                <div class="card-head"><div class="card-title">Consumo de Energia por Ativo</div></div>
+                <div class="chart-wrap" style="height:200px"><canvas id="energyChart"></canvas></div>
+            </div>
+            <div class="g3">
+                <div class="kpi kpi-pu"><div class="kpi-label">Consumo Total</div><div class="kpi-val" style="font-size:18px">@(CurrentPowerEstimate)<span class="kpi-unit"> kW</span></div><div class="kpi-sub">Nominal: @(TotalPowerNominal) kW</div></div>
+                <div class="kpi kpi-gold"><div class="kpi-label">kWh / Peça</div><div class="kpi-val" style="font-size:18px">@((1.2 + _rng.NextDouble() * .6).ToString("0.00"))<span class="kpi-unit"> kWh</span></div><div class="kpi-sub">Meta: 1.50 kWh</div></div>
+                <div class="kpi kpi-green"><div class="kpi-label">Custo Estimado Mensal</div><div class="kpi-val" style="font-size:18px">R$ @((CurrentPowerEstimate * 720 * 0.65 / 1000).ToString("0"))k</div><div class="kpi-sub">Tarifa: R$ 0,65/kWh</div></div>
+            </div>
+            <div class="card">
+                <div class="card-head"><div class="card-title">Tendência de Consumo — 24h</div></div>
+                <div class="chart-wrap" style="height:160px"><canvas id="energyTrendChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- TAB: MAINTENANCE -->
+        <div class="tab-content @(_activeTab == "maint" ? "active" : "")">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="display:flex;gap:8px">
+                    @foreach (var f in new[] { "all", "preventive", "corrective", "predictive" })
+                    {
+                        <button class="tb-btn" @onclick="() => FilterMaint(f)" style="@(f == _maintFilter ? "border-color:var(--pu3);color:var(--pu2)" : "")">@(f == "all" ? "Todos" : MaintTypeLabel(f))</button>
+                    }
+                </div>
+            </div>
+            @if (!FilteredMaint.Any())
+            {
+                <div style="color:var(--text3);font-size:11px;padding:20px 0;text-align:center">Nenhum registro</div>
+            }
+            else
+            {
+                @foreach (var m in FilteredMaint)
+                {
+                    <div class="maint-row">
+                        <div style="width:55px;flex-shrink:0"><span class="mono" style="font-size:10px;color:var(--text3)">@m.Date</span></div>
+                        <div style="width:35px;flex-shrink:0"><span class="mono" style="font-size:10px;color:var(--text3)">@m.Time</span></div>
+                        <span class="maint-badge @MaintTypeBadge(m.Type)">@MaintTypeLabel(m.Type)</span>
+                        <div style="flex:1;min-width:0">
+                            <div style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@m.Desc</div>
+                            <div style="font-size:9px;color:var(--text3);margin-top:2px">@m.Asset — @m.Tech</div>
+                        </div>
+                        <span class="@MaintStatusClass(m.Status)" style="font-size:12px">@MaintStatusIcon(m.Status)</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="rightpanel">
+        <div class="rp-tabs">
+            <div class="rp-tab @(_activeRightPanel == "chat" ? "active" : "")" @onclick='() => ShowRightPanel("chat")'>Agente IA</div>
+            <div class="rp-tab @(_activeRightPanel == "presc" ? "active" : "")" @onclick='() => ShowRightPanel("presc")'>Prescrições</div>
+        </div>
+
+        <div class="rp-content @(_activeRightPanel == "chat" ? "active" : "")" style="padding:12px;flex:1">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--pu2)"></div>
+                <span style="font-size:10px;color:var(--pu2);font-weight:600">AGENTE OMEGA</span>
+                <span style="font-size:9px;color:var(--text3);margin-left:auto">Edge AI + RAG</span>
+            </div>
+            <div class="chat-body" style="height:calc(100vh - 160px)">
+                <div class="chat-msgs" id="chatMsgs">
+                    @foreach (var (role, html) in _chatMessages)
+                    {
+                        <div class="msg msg-@role">
+                            <div class="msg-label">@(role == "user" ? "OPERADOR" : "AGENTE OMEGA")</div>
+                            @((MarkupString)html)
+                        </div>
+                    }
+                    @if (_chatTyping)
+                    {
+                        <div class="typing"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+                    }
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-presets">
+                        @foreach (var p in OmegaAssistant.Presets)
+                        {
+                            <button class="preset" @onclick="() => UsePreset(p)">@p</button>
+                        }
+                    </div>
+                    <div class="chat-row">
+                        <textarea class="chat-in" rows="2" placeholder="Descreva sintoma ou pergunta técnica..." @bind="_chatInput" @bind:event="oninput" @onkeydown="OnChatKeyDown"></textarea>
+                        <button class="send-btn" disabled="@_chatTyping" @onclick="SendChatAsync">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rp-content @(_activeRightPanel == "presc" ? "active" : "")" style="padding:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase">Ações Pendentes</div>
+                <div style="font-size:10px;color:var(--pu2)">@(PendingPrescriptions.Count()) pendentes</div>
+            </div>
+            @foreach (var p in PendingPrescriptions)
+            {
+                <div class="presc-item">
+                    <div class="presc-title">
+                        @p.Title
+                        <span class="presc-status" style="@(p.Priority == "crit" ? "background:rgba(139,21,21,.15);color:var(--red2)" : p.Priority == "warn" ? "background:rgba(200,148,26,.12);color:var(--gold2)" : "background:rgba(123,47,190,.12);color:var(--pu2)")">PENDENTE</span>
+                    </div>
+                    <div style="font-size:9px;color:var(--text3);margin-bottom:4px">@p.Asset — @p.Created</div>
+                    <div class="presc-body">@p.Body</div>
+                    <button @onclick="() => CompletePrescriptionAsync(p.Id)" style="margin-top:7px;background:rgba(26,140,78,.1);border:1px solid rgba(26,140,78,.25);border-radius:5px;padding:4px 10px;font-size:10px;color:var(--green2);cursor:pointer;width:100%">Marcar como Concluído</button>
+                </div>
+            }
+            <div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin:14px 0 10px">Concluídas</div>
+            @foreach (var p in DonePrescriptions)
+            {
+                <div class="presc-item" style="opacity:.6">
+                    <div class="presc-title">@p.Title<span class="presc-status ps-done">CONCLUÍDO</span></div>
+                    <div class="presc-body">@p.Body</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- FAULT MODAL -->
+    <div class="modal-overlay @(_faultModalOpen ? "open" : "")">
+        <div class="modal">
+            <div class="modal-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red2)" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                Injeção de Falha — Ambiente de Teste
+                <button class="modal-close" @onclick="CloseFaultModal">×</button>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Simule falhas para validar o comportamento do sistema de detecção e prescrição em <b>@CurrentAsset.Name</b>.</div>
+            @foreach (var f in _faultTypes)
+            {
+                <label style="display:flex;align-items:flex-start;gap:10px;padding:9px;border-radius:6px;border:1px solid var(--border2);margin-bottom:6px;cursor:pointer">
+                    <input type="radio" name="faultType" checked="@(f.Id == _faultType)" @onchange="() => _faultType = f.Id" style="margin-top:2px;accent-color:var(--pu)" />
+                    <div><div style="font-size:12px;font-weight:500;color:@f.Color">@f.Label</div><div style="font-size:10px;color:var(--text3);margin-top:2px">@f.Desc</div></div>
+                </label>
+            }
+            <div style="margin-top:14px;display:flex;gap:8px">
+                <button class="fault-btn" style="flex:1" @onclick="InjectFaultAsync">Injetar Falha Selecionada</button>
+                <button class="tb-btn" style="flex:1;justify-content:center" @onclick="CloseFaultModal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSET DETAIL MODAL -->
+    <div class="modal-overlay @(_assetDetailModalOpen ? "open" : "")">
+        <div class="modal modal-lg">
+            @{ var admAsset = _assets.FirstOrDefault(x => x.Id == _assetDetailAssetId); }
+            @if (admAsset != null)
+            {
+                var s = admAsset.Spec;
+                var hc = HealthColor(admAsset.Health);
+                var oeeC = OeeTextColor(admAsset.Oee);
+                bool inWarranty = DateTime.TryParseExact(s.Garantia, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var wDate) && wDate > DateTime.Now;
+                var assetMaint = _maintenanceLog.Where(m => m.Asset == admAsset.Name).ToList();
+                <div class="modal-title">
+                    <img src="@admAsset.Img" alt="" style="width:24px;height:24px;border-radius:5px;object-fit:cover;border:1px solid var(--border2)" />
+                    <span>@admAsset.Name</span>
+                    <span class="adm-status-chip" style="@(admAsset.Status == "running" ? "background:rgba(26,140,78,.12);border-color:rgba(26,140,78,.3);color:var(--green2)" : admAsset.Status == "warning" ? "background:rgba(200,148,26,.12);border-color:rgba(200,148,26,.3);color:var(--gold2)" : "background:rgba(192,57,43,.12);border-color:rgba(192,57,43,.3);color:var(--red2)")">
+                        <span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>@StatusLabel(admAsset.Status)
+                    </span>
+                    <button class="modal-close" @onclick="CloseAssetDetail">×</button>
+                </div>
+                <div class="adm-hero">
+                    <img src="@admAsset.Img" alt="@admAsset.Name" style="width:160px;height:108px;object-fit:cover;border-radius:7px;border:1px solid var(--border2);flex-shrink:0" />
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:11px;color:var(--text2);line-height:1.65;margin-bottom:12px">@s.Descricao</div>
+                        <div style="display:flex;gap:8px">
+                            <div class="adm-kpi" style="border-color:@(hc)33"><div class="adm-kpi-val" style="color:@hc">@(admAsset.Health)%</div><div class="adm-kpi-lbl">Saúde</div></div>
+                            <div class="adm-kpi" style="border-color:@(oeeC)33"><div class="adm-kpi-val" style="color:@oeeC">@(admAsset.Oee)%</div><div class="adm-kpi-lbl">OEE</div></div>
+                            <div class="adm-kpi"><div class="adm-kpi-val">@(admAsset.Cycles.ToString("N0"))</div><div class="adm-kpi-lbl">Ciclos</div></div>
+                            <div class="adm-kpi"><div class="adm-kpi-val" style="font-size:14px">@(admAsset.Power) kW</div><div class="adm-kpi-lbl">Potência</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="adm-tabs">
+                    <div class="adm-tab @(_assetDetailTab == "ident" ? "active" : "")" @onclick='() => SwitchAdmTab("ident")'>Identificação</div>
+                    <div class="adm-tab @(_assetDetailTab == "ativ" ? "active" : "")" @onclick='() => SwitchAdmTab("ativ")'>Atividades</div>
+                    <div class="adm-tab @(_assetDetailTab == "specs" ? "active" : "")" @onclick='() => SwitchAdmTab("specs")'>Especificações</div>
+                    <div class="adm-tab @(_assetDetailTab == "comp" ? "active" : "")" @onclick='() => SwitchAdmTab("comp")'>Componentes</div>
+                    <div class="adm-tab @(_assetDetailTab == "maint" ? "active" : "")" @onclick='() => SwitchAdmTab("maint")'>Histórico</div>
+                </div>
+
+                @if (_assetDetailTab == "ident")
+                {
+                    <div class="adm-section">Plaqueta do Equipamento</div>
+                    <div class="adm-row"><span class="adm-row-key">📋 Modelo</span><span class="adm-row-val">@s.Modelo</span></div>
+                    <div class="adm-row"><span class="adm-row-key">🏭 Fabricante</span><span class="adm-row-val">@s.Fabricante</span></div>
+                    <div class="adm-row"><span class="adm-row-key">🔢 Nº de Série</span><span class="adm-row-val">@s.Serial</span></div>
+                    <div class="adm-section">Datas</div>
+                    <div class="adm-row"><span class="adm-row-key">📅 Aquisição</span><span class="adm-row-val">@s.Aquisicao</span></div>
+                    <div class="adm-row"><span class="adm-row-key">🛡️ Garantia até</span><span class="adm-row-val" style="color:@(inWarranty ? "var(--green2)" : "var(--red2)")">@s.Garantia @(inWarranty ? "✓ Vigente" : "✗ Expirada")</span></div>
+                    <div class="adm-section">Sensor Instalado</div>
+                    <div style="margin-bottom:8px"><span class="adm-sensor-badge">📡 Omega Sense v2 — YUT-@(admAsset.Id)01</span></div>
+                    <div class="adm-row"><span class="adm-row-key">〰️ Vibração Baseline</span><span class="adm-row-val">@(admAsset.VibBase) g</span></div>
+                    <div class="adm-row"><span class="adm-row-key">🌡️ Temp. Baseline</span><span class="adm-row-val">@(admAsset.TempBase)°C</span></div>
+                    <div class="adm-row"><span class="adm-row-key">⚡ Potência Nominal</span><span class="adm-row-val">@(admAsset.Power) kW</span></div>
+                    <div class="adm-row"><span class="adm-row-key">🔄 RPM Referência</span><span class="adm-row-val">@(admAsset.Rpm) RPM</span></div>
+                }
+                else if (_assetDetailTab == "ativ")
+                {
+                    <div class="adm-section">Atividades Principais do Ativo</div>
+                    @foreach (var at in s.Atividades)
+                    {
+                        <div class="adm-activity"><span class="adm-activity-icon" style="font-size:14px">⚙️</span><span>@at</span></div>
+                    }
+                    <div class="adm-section">Estado do Processo Atual</div>
+                    @for (int i = 0; i < admAsset.Process.Count; i++)
+                    {
+                        var idx = i;
+                        var state = idx < admAsset.CurrentState ? "done" : idx == admAsset.CurrentState ? "active" : "pending";
+                        var bg = state == "done" ? "var(--bg5)" : state == "active" ? "rgba(123,47,190,.15)" : "var(--bg4)";
+                        var border = state == "active" ? "rgba(123,47,190,.35)" : "transparent";
+                        var color = state == "active" ? "var(--pu2)" : "var(--text3)";
+                        <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:5px;border:1px solid @border;background:@bg;margin-bottom:4px;font-size:11px;color:@color">
+                            <div style="width:16px;height:16px;border-radius:50%;background:@(state == "active" ? "var(--pu)" : "var(--bg5)");display:flex;align-items:center;justify-content:center;font-size:8px;color:@(state == "active" ? "#fff" : "var(--text3)")">@(state == "done" ? "✓" : (idx + 1).ToString())</div>
+                            @admAsset.Process[idx]
+                            @if (state == "active")
+                            {
+                                <span style="margin-left:auto;font-size:9px;font-family:'Space Mono',monospace;color:var(--pu2)">● ATIVO</span>
+                            }
+                        </div>
+                    }
+                }
+                else if (_assetDetailTab == "specs")
+                {
+                    <div class="adm-section">Especificações Técnicas</div>
+                    @foreach (var (k, v) in s.Specs)
+                    {
+                        <div class="adm-row"><span class="adm-row-key">@k</span><span class="adm-row-val">@v</span></div>
+                    }
+                }
+                else if (_assetDetailTab == "comp")
+                {
+                    <div class="adm-section">Saúde por Componente</div>
+                    @foreach (var (comp, score) in admAsset.Components)
+                    {
+                        var color = ComponentTextColor(score);
+                        <div style="margin-bottom:10px">
+                            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+                                <span style="color:var(--text2)">@ComponentLabel(comp)</span>
+                                <span style="font-family:'Space Mono',monospace;font-size:10px;color:@color;font-weight:700">@(score)%</span>
+                            </div>
+                            <div class="adm-comp-bar"><div class="adm-comp-fill" style="width:@(score)%;background:@color"></div></div>
+                        </div>
+                    }
+                }
+                else if (_assetDetailTab == "maint")
+                {
+                    <div class="adm-section">Histórico de Manutenção</div>
+                    @if (!assetMaint.Any())
+                    {
+                        <div style="color:var(--text3);font-size:11px;padding:20px 0;text-align:center">Nenhum registro de manutenção</div>
+                    }
+                    else
+                    {
+                        @foreach (var m in assetMaint)
+                        {
+                            <div class="adm-maint-item">
+                                <div style="flex-shrink:0;text-align:center">
+                                    <div class="mono" style="font-size:10px;color:var(--text3)">@m.Date</div>
+                                    <div class="mono" style="font-size:9px;color:var(--text3)">@m.Time</div>
+                                </div>
+                                <div style="flex:1;min-width:0">
+                                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                                        <span class="maint-badge @MaintTypeBadge(m.Type)">@MaintTypeLabel(m.Type)</span>
+                                        <span class="@MaintStatusClass(m.Status)" style="font-size:11px">@MaintStatusIcon(m.Status)</span>
+                                    </div>
+                                    <div style="font-size:11px;color:var(--text)">@m.Desc</div>
+                                    <div style="font-size:9px;color:var(--text3);margin-top:2px">Técnico: @m.Tech</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div class="modal-overlay @(_reportModalOpen ? "open" : "")">
+        <div class="modal" style="text-align:center;max-width:400px">
+            <div style="font-size:24px;margin-bottom:12px;color:var(--pu2)">📄</div>
+            <div class="modal-title" style="justify-content:center;margin-bottom:8px">Gerando Relatório de Turno</div>
+            @if (!_reportDone)
+            {
+                <div style="font-size:12px;color:var(--text3);margin-bottom:20px">@_reportStatus</div>
+            }
+            <div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-bottom:20px"><div style="height:100%;width:@(_reportProgress)%;background:var(--pu);transition:width 0.2s"></div></div>
+            @if (_reportDone)
+            {
+                <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:left">
+                    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">✓ Dados de @(_assets.Count) ativos compilados</div>
+                    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">✓ Histórico de manutenção anexado</div>
+                    <div style="font-size:11px;color:var(--text2);margin-bottom:14px">✓ Diagnósticos de IA incluídos</div>
+                    <button class="tb-btn" style="width:100%;justify-content:center;background:var(--pu);color:#fff;border:none" @onclick="DownloadReportAsync">Concluir e Baixar Relatório</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ABOUT MODAL -->
+    <div class="modal-overlay @(_aboutModalOpen ? "open" : "")">
+        <div class="modal modal-lg">
+            <div class="modal-title">
+                <img src="img/yuta_logo.png" alt="Yuta" height="18" />
+                Sobre — FactoryOps
+                <button class="modal-close" @onclick="CloseAboutModal">×</button>
+            </div>
+            <div class="abt-tabs">
+                <div class="abt-tab @(_aboutTab == "sensor" ? "active" : "")" @onclick='() => ShowAbt("sensor")'>Sensor</div>
+                <div class="abt-tab @(_aboutTab == "app" ? "active" : "")" @onclick='() => ShowAbt("app")'>Aplicação</div>
+                <div class="abt-tab @(_aboutTab == "factory" ? "active" : "")" @onclick='() => ShowAbt("factory")'>Fábrica</div>
+            </div>
+            @if (_aboutTab == "sensor")
+            {
+                <img src="img/omega_sense.png" alt="Omega Sense v2" class="abt-img" />
+                <div class="abt-section">Especificações Técnicas</div>
+                <div class="abt-spec"><span>Modelo</span><span>Omega Sense v2</span></div>
+                <div class="abt-spec"><span>Acelerômetro</span><span>Triaxial MEMS ±16g</span></div>
+                <div class="abt-spec"><span>Banda (Alta Freq.)</span><span>0 — 12.800 Hz</span></div>
+                <div class="abt-spec"><span>Banda (Baixa Freq.)</span><span>0 — 200 Hz</span></div>
+                <div class="abt-spec"><span>Resolução ADC</span><span>16 bits</span></div>
+                <div class="abt-spec"><span>Sensor de Temperatura</span><span>-40°C a +125°C (±0.5°C)</span></div>
+                <div class="abt-section">Comunicação</div>
+                <div class="abt-spec"><span>Protocolo</span><span>IEEE 802.15.4g (Sub-GHz)</span></div>
+                <div class="abt-spec"><span>Frequência</span><span>915 MHz ISM</span></div>
+                <div class="abt-spec"><span>Topologia</span><span>Mesh (auto-healing)</span></div>
+                <div class="abt-spec"><span>Alcance</span><span>até 500m (LOS)</span></div>
+                <div class="abt-section">Físico</div>
+                <div class="abt-spec"><span>Alimentação</span><span>Li-SOCl2 3.6V / Energy Harvest</span></div>
+                <div class="abt-spec"><span>Autonomia</span><span>até 5 anos</span></div>
+                <div class="abt-spec"><span>Proteção</span><span>IP67</span></div>
+                <div class="abt-spec"><span>Fixação</span><span>Base magnética / Rosca 1/4"-28</span></div>
+                <div class="abt-spec"><span>Dimensões</span><span>52 × 38 × 35 mm</span></div>
+                <div class="abt-spec"><span>Peso</span><span>68g (com bateria)</span></div>
+            }
+            else if (_aboutTab == "app")
+            {
+                <div class="abt-section">Aplicação</div>
+                <div class="abt-spec"><span>Nome</span><span>FactoryOps — Omega Sense</span></div>
+                <div class="abt-spec"><span>Versão</span><span>2.4.1 (build 2026.04)</span></div>
+                <div class="abt-spec"><span>Desenvolvedor</span><span>Yuta Prevent</span></div>
+                <div class="abt-section">Módulos</div>
+                <div class="abt-spec"><span>Monitoramento</span><span>Tempo real (RMS, Temp)</span></div>
+                <div class="abt-spec"><span>Análise Espectral</span><span>FFT até 12.8 kHz</span></div>
+                <div class="abt-spec"><span>OEE Analytics</span><span>Disponib. / Desemp. / Qual.</span></div>
+                <div class="abt-spec"><span>Mapa de Saúde</span><span>Score por componente</span></div>
+                <div class="abt-spec"><span>Agente IA</span><span>Diagnóstico + Prescrição</span></div>
+                <div class="abt-spec"><span>Gestão de Energia</span><span>Consumo por ativo</span></div>
+                <div class="abt-spec"><span>Manutenção</span><span>Log preventiva/corretiva/preditiva</span></div>
+                <div class="abt-section">Tecnologia</div>
+                <div class="abt-spec"><span>Edge Computing</span><span>Processamento local no GW</span></div>
+                <div class="abt-spec"><span>Protocolos</span><span>MQTT / OPC-UA / REST</span></div>
+                <div class="abt-spec"><span>Normas</span><span>ISO 10816 / ISO 20816</span></div>
+            }
+            else
+            {
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                    <img src="img/yuta_logo.png" alt="Yuta" height="28" />
+                    <div>
+                        <div style="font-size:14px;font-weight:600">MetalForm Indústria Ltda.</div>
+                        <div style="font-size:10px;color:var(--text3)">Campinas, SP — CNPJ: 12.345.678/0001-90</div>
+                    </div>
+                </div>
+                <div class="abt-section">Perfil</div>
+                <div class="abt-spec"><span>Segmento</span><span>Metalurgia / Peças Estampadas</span></div>
+                <div class="abt-spec"><span>Capacidade</span><span>450 ton/mês</span></div>
+                <div class="abt-spec"><span>Turnos</span><span>3 turnos (24h)</span></div>
+                <div class="abt-spec"><span>Colaboradores</span><span>182</span></div>
+                <div class="abt-spec"><span>Certificações</span><span>ISO 9001 / ISO 14001</span></div>
+                <div class="abt-spec"><span>Clientes</span><span>Automotivo / Linha Branca</span></div>
+                <div class="abt-section">Processo de Fabricação</div>
+                @for (int i = 0; i < FactoryProcessSteps.Length; i++)
+                {
+                    <div class="factory-step"><div class="factory-step-num">@(i + 1)</div>@FactoryProcessSteps[i]</div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div class="notif @(_notifMessage != null ? "show" : "")" style="border-left-color:@_notifColor">@_notifMessage</div>
+
 </div>
-
-@code {
-    private int totalUsuarios = 0;
-    private int totalEmpresas = 0;
-    private int usuariosAtivos = 0;
-    private int registrosHoje = 0;
-    private List<Usuario>? usuariosRecentes;
-    private List<Empresa>? empresasRecentes;
-    private bool isLoading = true;
-    private bool carregouComErro = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CarregarDados();
-    }
-
-    private async Task CarregarDados()
-    {
-        try
-        {
-            isLoading = true;
-            carregouComErro = false;
-
-            // Carregar usuários
-            var usuariosResponse = await Http.GetFromJsonAsync<List<Usuario>>("api/usuario");
-            if (usuariosResponse != null)
-            {
-                totalUsuarios = usuariosResponse.Count;
-                usuariosAtivos = usuariosResponse.Count(u => u.EmailConfirmado);
-                usuariosRecentes = usuariosResponse.OrderByDescending(u => u.DataCriacao).ToList();
-                registrosHoje = usuariosResponse.Count(u => u.DataCriacao.Date == DateTime.Today);
-            }
-
-            // Carregar empresas
-            var empresasResponse = await Http.GetFromJsonAsync<List<Empresa>>("api/empresa");
-            if (empresasResponse != null)
-            {
-                totalEmpresas = empresasResponse.Count;
-                empresasRecentes = empresasResponse.OrderByDescending(e => e.DataCadastro).ToList();
-            }
-        }
-        catch
-        {
-            carregouComErro = true;
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-}

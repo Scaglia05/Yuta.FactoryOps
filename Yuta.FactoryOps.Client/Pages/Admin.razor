@@ -1,0 +1,226 @@
+@page "/admin"
+@layout MainLayout
+@attribute [Authorize]
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Yuta.FactoryOps.Domain.Entities
+
+<PageTitle>Painel Administrativo - YUTA</PageTitle>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Painel Administrativo</h1>
+        <p class="subtitle">Visão geral de usuários e empresas</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Carregando dados...</p>
+    }
+    else if (carregouComErro)
+    {
+        <div class="yuta-alert error-popup" style="margin-bottom: 16px;">
+            Não foi possível carregar os dados do painel. Verifique se a API está acessível.
+        </div>
+    }
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Total de Usuários</h3>
+                <p class="metric-value">@totalUsuarios</p>
+                <span class="metric-trend metric-trend-positive">+12% este mês</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Total de Empresas</h3>
+                <p class="metric-value">@totalEmpresas</p>
+                <span class="metric-trend metric-trend-positive">+5% este mês</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Usuários Ativos</h3>
+                <p class="metric-value">@usuariosAtivos</p>
+                <span class="metric-trend metric-trend-positive">+8% este mês</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon metric-icon-orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <div class="metric-content">
+                <h3>Registros Hoje</h3>
+                <p class="metric-value">@registrosHoje</p>
+                <span class="metric-trend metric-trend-neutral">+2% ontem</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Usuários Recentes</h2>
+                <a href="/usuarios" class="view-all">Ver todos →</a>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Empresa</th>
+                            <th>Status</th>
+                            <th>Data Cadastro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (usuariosRecentes != null && usuariosRecentes.Count > 0)
+                        {
+                            @foreach (var usuario in usuariosRecentes.Take(5))
+                            {
+                                <tr>
+                                    <td>@usuario.Nome</td>
+                                    <td>@usuario.Email</td>
+                                    <td>@usuario.EmpresaId</td>
+                                    <td>
+                                        <span class="status-badge @(usuario.EmailConfirmado ? "status-active" : "status-pending")">
+                                            @(usuario.EmailConfirmado ? "Ativo" : "Pendente")
+                                        </span>
+                                    </td>
+                                    <td>@usuario.DataCriacao.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="no-data">Nenhum usuário encontrado</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="section-header">
+                <h2>Empresas Recentes</h2>
+                <a href="/empresas" class="view-all">Ver todas →</a>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CNPJ</th>
+                            <th>Status</th>
+                            <th>Data Cadastro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (empresasRecentes != null && empresasRecentes.Count > 0)
+                        {
+                            @foreach (var empresa in empresasRecentes.Take(5))
+                            {
+                                <tr>
+                                    <td>@empresa.Nome</td>
+                                    <td>@empresa.Cnpj</td>
+                                    <td>
+                                        <span class="status-badge @(empresa.Ativa ? "status-active" : "status-inactive")">
+                                            @(empresa.Ativa ? "Ativa" : "Inativa")
+                                        </span>
+                                    </td>
+                                    <td>@empresa.DataCadastro.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="no-data">Nenhuma empresa encontrada</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalUsuarios = 0;
+    private int totalEmpresas = 0;
+    private int usuariosAtivos = 0;
+    private int registrosHoje = 0;
+    private List<Usuario>? usuariosRecentes;
+    private List<Empresa>? empresasRecentes;
+    private bool isLoading = true;
+    private bool carregouComErro = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        try
+        {
+            isLoading = true;
+            carregouComErro = false;
+
+            var usuariosResponse = await Http.GetFromJsonAsync<List<Usuario>>("api/usuario");
+            if (usuariosResponse != null)
+            {
+                totalUsuarios = usuariosResponse.Count;
+                usuariosAtivos = usuariosResponse.Count(u => u.EmailConfirmado);
+                usuariosRecentes = usuariosResponse.OrderByDescending(u => u.DataCriacao).ToList();
+                registrosHoje = usuariosResponse.Count(u => u.DataCriacao.Date == DateTime.Today);
+            }
+
+            var empresasResponse = await Http.GetFromJsonAsync<List<Empresa>>("api/empresa");
+            if (empresasResponse != null)
+            {
+                totalEmpresas = empresasResponse.Count;
+                empresasRecentes = empresasResponse.OrderByDescending(e => e.DataCadastro).ToList();
+            }
+        }
+        catch
+        {
+            carregouComErro = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
