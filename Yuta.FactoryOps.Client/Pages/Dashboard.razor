@@ -24,6 +24,7 @@
             <span>Relatório</span>
         </button>
         <div class="tb-right">
+            <button class="tb-btn mobile-rp-toggle" @onclick="ToggleMobileRightPanel" title="Agente IA / Prescrições">💬</button>
             <button class="tb-btn" @onclick="ToggleTheme">🌓 <span>Tema</span></button>
             <button class="tb-btn" @onclick="OpenAboutModal">ℹ️ <span>Sobre</span></button>
             <div class="dropdown">
@@ -505,8 +506,10 @@
         </div>
     </div>
 
+    <div class="rp-backdrop @(_mobileRightPanelOpen ? "rp-open" : "")" @onclick="ToggleMobileRightPanel"></div>
+
     <!-- RIGHT PANEL -->
-    <div class="rightpanel">
+    <div class="rightpanel @(_mobileRightPanelOpen ? "rp-open" : "")">
         <div class="rp-tabs">
             <div class="rp-tab @(_activeRightPanel == "chat" ? "active" : "")" @onclick='() => ShowRightPanel("chat")'>Agente IA</div>
             <div class="rp-tab @(_activeRightPanel == "presc" ? "active" : "")" @onclick='() => ShowRightPanel("presc")'>Prescrições</div>

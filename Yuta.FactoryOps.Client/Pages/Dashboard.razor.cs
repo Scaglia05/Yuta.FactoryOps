@@ -185,6 +185,9 @@ public partial class Dashboard : IAsyncDisposable
     private bool _adminMenuOpen;
     private void ToggleAdminMenu() => _adminMenuOpen = !_adminMenuOpen;
 
+    private bool _mobileRightPanelOpen;
+    private void ToggleMobileRightPanel() => _mobileRightPanelOpen = !_mobileRightPanelOpen;
+
     private static double ParseDouble(object? value) =>
         double.TryParse(value?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
 
