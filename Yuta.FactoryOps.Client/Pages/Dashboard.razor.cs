@@ -24,7 +24,7 @@ public partial class Dashboard : IAsyncDisposable
     private string _activeRightPanel = "chat";
     private string _alertFilter = "all";
     private string _maintFilter = "all";
-    private string _theme = "dark";
+    private string _theme = "light";
     private string _historyFilter = "Todos os ativos";
 
     private readonly List<double> _vibData = new();

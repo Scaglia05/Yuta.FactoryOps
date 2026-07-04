@@ -7,15 +7,23 @@
   --text:#ede8fa;--text2:#a898cc;--text3:#6a5a80;--border:#2a1e48;--border2:#3a2a60;
 }
 .fops-app[data-theme="light"]{
-  --bg:#f2eff7;--bg2:#e8e3f0;--bg3:#ffffff;--bg4:#ddd6e8;--bg5:#d0c8de;
-  --pu:#7b2fbe;--pu2:#6a22a8;--pu3:#8b3fd0;--pu-dim:#ece4f7;--pu-glow:rgba(123,47,190,.12);
+  --bg:#f5f6fc;--bg2:#ffffff;--bg3:#ffffff;--bg4:#f0f1fa;--bg5:#e4e6f7;
+  --pu:#667eea;--pu2:#764ba2;--pu3:#8a6fc2;--pu-dim:#eef0fd;--pu-glow:rgba(102,126,234,.15);
   --crimson:#b81c1c;--crimson2:#d32f2f;--gold:#b58517;--gold2:#a07010;
   --green:#1a8c4e;--green2:#16793f;--red:#c0392b;--red2:#e74c3c;
-  --text:#1a1428;--text2:#4a3d60;--text3:#7a6d90;--border:#d8d0e5;--border2:#c0b5d5;
+  --text:#1e1b2e;--text2:#4a3d60;--text3:#7a7690;--border:#e5e3f0;--border2:#d3cfe8;
 }
 .fops-app[data-theme="light"]::before{display:none}
 .fops-app{height:100vh;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;overflow:hidden;position:relative;transition:background-color .3s ease,color .3s ease}
 .mono{font-family:'Space Mono',monospace}
+
+/* Barras de rolagem finas e discretas em toda a dashboard (em vez da barra padrão do navegador) */
+.fops-app *{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.fops-app *::-webkit-scrollbar{width:6px;height:6px}
+.fops-app *::-webkit-scrollbar-track{background:transparent}
+.fops-app *::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.fops-app *::-webkit-scrollbar-thumb:hover{background:var(--pu3)}
+.fops-app *::-webkit-scrollbar-corner{background:transparent}
 
 .fops-app::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(123,47,190,.015) 2px,rgba(123,47,190,.015) 4px);pointer-events:none;z-index:9999}
 
