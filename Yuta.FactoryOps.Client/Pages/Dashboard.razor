@@ -47,7 +47,47 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <div class="sb-header"><div class="sb-title">Ativos — Linha 1</div></div>
+        <div class="sb-header" style="display:flex;align-items:center;justify-content:space-between">
+            <div class="sb-title">Ativos — Linha 1</div>
+            <div class="dropdown">
+                <button class="sb-menu-btn" @onclick="ToggleSidebarMenu" title="Modo de aquisição e rede mesh">⋯</button>
+                <div class="dropdown-menu sb-dropdown-menu @(_sidebarMenuOpen ? "open" : "")">
+                    <div class="sb-sect-title" style="padding:6px 8px 4px">Modo de Aquisição</div>
+                    <div class="acq-toggle" style="padding:0 8px 8px">
+                        @for (int i = 0; i < _acqModes.Count; i++)
+                        {
+                            var idx = i; var m = _acqModes[i];
+                            <div class="acq-mode @(m.Active ? "active" : "")" @onclick="() => ToggleAcqAsync(idx)">
+                                <div><div class="acq-mode-label">@m.Label</div><div style="font-size:9px;color:var(--text3)">@m.Sub</div></div>
+                                <div class="switch @(m.Active ? "on" : "")"></div>
+                            </div>
+                        }
+                    </div>
+                    <div class="sb-sect-title" style="padding:6px 8px 4px;border-top:1px solid var(--border)">Rede Mesh</div>
+                    <div style="padding:0 8px 8px">
+                        @foreach (var a in _assets)
+                        {
+                            var sig = MeshSignal(a);
+                            var c = sig > 85 ? "var(--green2)" : sig > 70 ? "var(--gold2)" : "var(--red2)";
+                            <div class="mesh-node">
+                                <div class="mesh-dot" style="background:@c"></div>
+                                <div style="flex:1"><div class="mesh-label">@a.Name</div><div class="mesh-bar"><div class="mesh-bar-fill" style="width:@(sig)%;background:@c"></div></div></div>
+                                <div class="mesh-val">@(sig)%</div>
+                            </div>
+                        }
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:8px">
+                            <span>Gateway</span><span class="mono" style="color:var(--green2)">YUT-GW-01</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+                            <span>Freq.</span><span class="mono">915 MHz</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+                            <span>Protocolo</span><span class="mono">802.15.4g</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div style="flex:1">
             @foreach (var a in _assets)
             {
@@ -76,45 +116,6 @@
                     </div>
                 </div>
             }
-        </div>
-
-        <div class="sb-divider"></div>
-        <div class="sb-section">
-            <div class="sb-sect-title">Modo de Aquisição</div>
-            <div class="acq-toggle">
-                @for (int i = 0; i < _acqModes.Count; i++)
-                {
-                    var idx = i; var m = _acqModes[i];
-                    <div class="acq-mode @(m.Active ? "active" : "")" @onclick="() => ToggleAcqAsync(idx)">
-                        <div><div class="acq-mode-label">@m.Label</div><div style="font-size:9px;color:var(--text3)">@m.Sub</div></div>
-                        <div class="switch @(m.Active ? "on" : "")"></div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="sb-divider"></div>
-        <div class="sb-section">
-            <div class="sb-sect-title">Rede Mesh</div>
-            @foreach (var a in _assets)
-            {
-                var sig = MeshSignal(a);
-                var c = sig > 85 ? "var(--green2)" : sig > 70 ? "var(--gold2)" : "var(--red2)";
-                <div class="mesh-node">
-                    <div class="mesh-dot" style="background:@c"></div>
-                    <div style="flex:1"><div class="mesh-label">@a.Name</div><div class="mesh-bar"><div class="mesh-bar-fill" style="width:@(sig)%;background:@c"></div></div></div>
-                    <div class="mesh-val">@(sig)%</div>
-                </div>
-            }
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:8px">
-                <span>Gateway</span><span class="mono" style="color:var(--green2)">YUT-GW-01</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
-                <span>Freq.</span><span class="mono">915 MHz</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
-                <span>Protocolo</span><span class="mono">802.15.4g</span>
-            </div>
         </div>
 
         <div class="sb-divider"></div>
@@ -150,17 +151,23 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
                 Mapa de Saúde
             </div>
-            <div class="tab @(_activeTab == "config" ? "active" : "")" @onclick='() => ShowTab("config")'>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93L17.66 6.34M6.34 17.66L4.93 19.07M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12h2M20 12h2M12 2v2M12 20v2" /></svg>
-                Limiares
-            </div>
-            <div class="tab @(_activeTab == "energy" ? "active" : "")" @onclick='() => ShowTab("energy")'>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-                Energia
-            </div>
-            <div class="tab @(_activeTab == "maint" ? "active" : "")" @onclick='() => ShowTab("maint")'>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>
-                Manutenção
+            <div class="tab dropdown @(IsSecondaryTabActive ? "active" : "")" @onclick="ToggleMoreTabsMenu">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg>
+                @(IsSecondaryTabActive ? TabLabel(_activeTab) : "Mais")
+                <div class="dropdown-menu @(_moreTabsMenuOpen ? "open" : "")" style="top:calc(100% + 2px);left:0;right:auto">
+                    <div class="dd-item @(_activeTab == "config" ? "active" : "")" @onclick='() => ShowTabFromMenu("config")' @onclick:stopPropagation>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" /><path d="M19.07 4.93L17.66 6.34M6.34 17.66L4.93 19.07M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12h2M20 12h2M12 2v2M12 20v2" /></svg>
+                        Limiares
+                    </div>
+                    <div class="dd-item @(_activeTab == "energy" ? "active" : "")" @onclick='() => ShowTabFromMenu("energy")' @onclick:stopPropagation>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+                        Energia
+                    </div>
+                    <div class="dd-item @(_activeTab == "maint" ? "active" : "")" @onclick='() => ShowTabFromMenu("maint")' @onclick:stopPropagation>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>
+                        Manutenção
+                    </div>
+                </div>
             </div>
             <div class="tab @(_activeTab == "alerts" ? "active" : "")" @onclick='() => ShowTab("alerts")' style="margin-left:auto">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" /></svg>

@@ -188,6 +188,28 @@ public partial class Dashboard : IAsyncDisposable
     private bool _mobileRightPanelOpen;
     private void ToggleMobileRightPanel() => _mobileRightPanelOpen = !_mobileRightPanelOpen;
 
+    private bool _sidebarMenuOpen;
+    private void ToggleSidebarMenu() => _sidebarMenuOpen = !_sidebarMenuOpen;
+
+    private bool _moreTabsMenuOpen;
+    private void ToggleMoreTabsMenu() => _moreTabsMenuOpen = !_moreTabsMenuOpen;
+
+    private static readonly string[] SecondaryTabs = { "config", "energy", "maint" };
+    private bool IsSecondaryTabActive => SecondaryTabs.Contains(_activeTab);
+    private static string TabLabel(string tab) => tab switch
+    {
+        "config" => "Limiares",
+        "energy" => "Energia",
+        "maint" => "Manutenção",
+        _ => "Mais"
+    };
+
+    private void ShowTabFromMenu(string tab)
+    {
+        _activeTab = tab;
+        _moreTabsMenuOpen = false;
+    }
+
     private static double ParseDouble(object? value) =>
         double.TryParse(value?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
 
