@@ -1,10 +1,10 @@
 .fops-app *{box-sizing:border-box;margin:0;padding:0}
 .fops-app{
-  --bg:#06030e;--bg2:#0c0818;--bg3:#120e22;--bg4:#1b1532;--bg5:#231c40;
-  --pu:#7b2fbe;--pu2:#9b45d8;--pu3:#5b1f8e;--pu-dim:#2e1a50;--pu-glow:rgba(123,47,190,.25);
+  --bg:#211d2e;--bg2:#282438;--bg3:#2e2941;--bg4:#38324e;--bg5:#453c60;
+  --pu:#8a4fd0;--pu2:#af7ae6;--pu3:#7d5cb6;--pu-dim:#3d3457;--pu-glow:rgba(138,79,208,.25);
   --crimson:#8b1515;--crimson2:#b01c1c;--gold:#c8941a;--gold2:#e0ab22;
-  --green:#1a8c4e;--green2:#22c55e;--red:#c0392b;--red2:#ef4444;
-  --text:#ede8fa;--text2:#a898cc;--text3:#6a5a80;--border:#2a1e48;--border2:#3a2a60;
+  --green:#1a8c4e;--green2:#3ddc78;--red:#c0392b;--red2:#f27272;
+  --text:#f2eefb;--text2:#bdafd8;--text3:#948aac;--border:#403a56;--border2:#524968;
 }
 .fops-app[data-theme="light"]{
   --bg:#f5f6fc;--bg2:#ffffff;--bg3:#ffffff;--bg4:#f0f1fa;--bg5:#e4e6f7;
