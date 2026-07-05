@@ -161,8 +161,16 @@ window.fops = (function () {
         URL.revokeObjectURL(url);
     }
 
+    function getTheme() {
+        try { return localStorage.getItem('fops-theme'); } catch { return null; }
+    }
+
+    function setTheme(theme) {
+        try { localStorage.setItem('fops-theme', theme); } catch { /* ignore */ }
+    }
+
     return {
         drawOeeRing, initTrendCharts, pushTrendData, initFftChart, initHistoryCharts, initEnergyCharts,
-        scrollToBottom, downloadTextFile
+        scrollToBottom, downloadTextFile, getTheme, setTheme
     };
 })();

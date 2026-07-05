@@ -96,6 +96,13 @@ public partial class Dashboard : IAsyncDisposable
     {
         if (firstRender)
         {
+            var storedTheme = await JS.InvokeAsync<string?>("fops.getTheme");
+            if (!string.IsNullOrEmpty(storedTheme) && storedTheme != _theme)
+            {
+                _theme = storedTheme;
+                StateHasChanged();
+            }
+
             await InitAllChartsAsync();
             _chartsReady = true;
             _lastRenderedTab = _activeTab;
@@ -177,9 +184,10 @@ public partial class Dashboard : IAsyncDisposable
     private void ShowTab(string tab) => _activeTab = tab;
     private void ShowRightPanel(string panel) => _activeRightPanel = panel;
 
-    private void ToggleTheme()
+    private async Task ToggleTheme()
     {
         _theme = _theme == "dark" ? "light" : "dark";
+        await JS.InvokeVoidAsync("fops.setTheme", _theme);
     }
 
     private bool _adminMenuOpen;
