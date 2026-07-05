@@ -169,8 +169,22 @@ window.fops = (function () {
         try { localStorage.setItem('fops-theme', theme); } catch { /* ignore */ }
     }
 
+    function applyLayoutTheme(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        el.dataset.theme = getTheme() || 'dark';
+    }
+
+    function toggleLayoutTheme(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        const next = (getTheme() || 'dark') === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+        el.dataset.theme = next;
+    }
+
     return {
         drawOeeRing, initTrendCharts, pushTrendData, initFftChart, initHistoryCharts, initEnergyCharts,
-        scrollToBottom, downloadTextFile, getTheme, setTheme
+        scrollToBottom, downloadTextFile, getTheme, setTheme, applyLayoutTheme, toggleLayoutTheme
     };
 })();
