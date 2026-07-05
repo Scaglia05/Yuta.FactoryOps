@@ -1,20 +1,32 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @using Yuta.FactoryOps.Client.Components
 
-<div class="main-layout">
+<div class="main-layout" data-theme="dark">
     <SideNav />
-    
+
     <div class="main-content">
         @Body
     </div>
 </div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("fops.applyLayoutTheme", ".main-layout");
+        }
+    }
+}
 
 <style>
 .main-layout {
     display: flex;
     min-height: 100vh;
     background: #f8fafc;
+    transition: background-color .3s ease;
 }
 
 .main-content {

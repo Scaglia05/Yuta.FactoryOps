@@ -473,6 +473,117 @@
     color: #764ba2;
 }
 
+/* ==========================================================================
+   TEMA ESCURO (segue a escolha feita no dashboard FactoryOps, salva em
+   localStorage e aplicada via data-theme no .main-layout)
+   ========================================================================== */
+.main-layout[data-theme="dark"] {
+    background: #211d2e;
+}
+
+.main-layout[data-theme="dark"] .page-title h1,
+.main-layout[data-theme="dark"] .dashboard-header h1,
+.main-layout[data-theme="dark"] .modal-header h2,
+.main-layout[data-theme="dark"] .section-header h2 {
+    color: #f2eefb;
+}
+
+.main-layout[data-theme="dark"] .subtitle {
+    color: #948aac;
+}
+
+.main-layout[data-theme="dark"] .btn-secondary {
+    background: #38324e;
+    color: #bdafd8;
+    border-color: #403a56;
+}
+
+.main-layout[data-theme="dark"] .btn-secondary:hover {
+    background: #453c60;
+}
+
+.main-layout[data-theme="dark"] .table-container,
+.main-layout[data-theme="dark"] .metric-card,
+.main-layout[data-theme="dark"] .content-section,
+.main-layout[data-theme="dark"] .modal-content {
+    background: #2e2941;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.main-layout[data-theme="dark"] .data-table thead {
+    background: #282438;
+    border-bottom-color: #403a56;
+}
+
+.main-layout[data-theme="dark"] .data-table th {
+    color: #bdafd8;
+}
+
+.main-layout[data-theme="dark"] .data-table td {
+    color: #f2eefb;
+    border-bottom-color: #38324e;
+}
+
+.main-layout[data-theme="dark"] .data-table tbody tr:hover {
+    background: #38324e;
+}
+
+.main-layout[data-theme="dark"] .no-data {
+    color: #948aac;
+}
+
+.main-layout[data-theme="dark"] .company-icon {
+    background: #38324e;
+    color: #bdafd8;
+}
+
+.main-layout[data-theme="dark"] .modal-header,
+.main-layout[data-theme="dark"] .modal-footer {
+    border-color: #403a56;
+}
+
+.main-layout[data-theme="dark"] .btn-close {
+    background: #38324e;
+}
+
+.main-layout[data-theme="dark"] .btn-close:hover {
+    background: #453c60;
+}
+
+.main-layout[data-theme="dark"] .btn-close svg {
+    color: #bdafd8;
+}
+
+.main-layout[data-theme="dark"] .form-group label {
+    color: #bdafd8;
+}
+
+.main-layout[data-theme="dark"] .input-control {
+    background: #211d2e;
+    border-color: #403a56;
+    color: #f2eefb;
+}
+
+.main-layout[data-theme="dark"] .input-control::placeholder {
+    color: #7c7295;
+}
+
+.main-layout[data-theme="dark"] .metric-value {
+    color: #f2eefb;
+}
+
+.main-layout[data-theme="dark"] .metric-content h3 {
+    color: #948aac;
+}
+
+.main-layout[data-theme="dark"] .view-all {
+    color: #af7ae6;
+}
+
+.main-layout[data-theme="dark"] .view-all:hover {
+    color: #8a4fd0;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .page-header {
