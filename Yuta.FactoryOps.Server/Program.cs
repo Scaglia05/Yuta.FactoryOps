@@ -83,6 +83,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<DatabaseSeeder>();
 
+// Dados de monitoramento de ativos (OEE, vibração, temperatura etc.) ainda não têm uma API real —
+// por enquanto usamos um mock em memória por sessão. Ver IFactoryOpsDataService para trocar por uma
+// implementação real quando a API/gateway de telemetria existir.
+builder.Services.AddScoped<Yuta.FactoryOps.Client.FactoryOps.IFactoryOpsDataService, Yuta.FactoryOps.Client.FactoryOps.MockFactoryOpsDataService>();
+
 builder.Services.AddScoped<AuthenticationStateProvider, Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>();
 builder.Services.AddScoped<Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt>(sp =>
     (Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt)sp.GetRequiredService<AuthenticationStateProvider>());
