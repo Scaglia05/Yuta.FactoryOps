@@ -25,6 +25,18 @@
         </button>
     </div>
 
+    <div class="filter-tabs">
+        <button class="filter-tab @(_filtro == "todas" ? "active" : "")" @onclick='() => _filtro = "todas"'>
+            Todas <span class="filter-count">@(empresas?.Count ?? 0)</span>
+        </button>
+        <button class="filter-tab @(_filtro == "ativas" ? "active" : "")" @onclick='() => _filtro = "ativas"'>
+            Ativas <span class="filter-count">@(empresas?.Count(e => e.Ativa) ?? 0)</span>
+        </button>
+        <button class="filter-tab @(_filtro == "inativas" ? "active" : "")" @onclick='() => _filtro = "inativas"'>
+            Inativas <span class="filter-count">@(empresas?.Count(e => !e.Ativa) ?? 0)</span>
+        </button>
+    </div>
+
     <div class="table-container">
         <table class="data-table">
             <thead>
@@ -38,9 +50,9 @@
                 </tr>
             </thead>
             <tbody>
-                @if (empresas != null && empresas.Count > 0)
+                @if (EmpresasFiltradas.Count > 0)
                 {
-                    @foreach (var empresa in empresas)
+                    @foreach (var empresa in EmpresasFiltradas)
                     {
                         <tr>
                             <td>
@@ -86,7 +98,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="6" class="no-data">Nenhuma empresa encontrada</td>
+                        <td colspan="6" class="no-data">@(empresas == null || empresas.Count == 0 ? "Nenhuma empresa encontrada" : "Nenhuma empresa nesse filtro")</td>
                     </tr>
                 }
             </tbody>
@@ -159,6 +171,14 @@
     private bool mostrarModal = false;
     private bool editando = false;
     private bool isSalvando = false;
+    private string _filtro = "todas";
+
+    private List<Empresa> EmpresasFiltradas => (empresas ?? new()).Where(e => _filtro switch
+    {
+        "ativas" => e.Ativa,
+        "inativas" => !e.Ativa,
+        _ => true
+    }).ToList();
 
     protected override async Task OnInitializedAsync()
     {

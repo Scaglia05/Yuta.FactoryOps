@@ -25,6 +25,18 @@
         </button>
     </div>
 
+    <div class="filter-tabs">
+        <button class="filter-tab @(_filtro == "todos" ? "active" : "")" @onclick='() => _filtro = "todos"'>
+            Todos <span class="filter-count">@(usuarios?.Count ?? 0)</span>
+        </button>
+        <button class="filter-tab @(_filtro == "ativos" ? "active" : "")" @onclick='() => _filtro = "ativos"'>
+            Ativos <span class="filter-count">@(usuarios?.Count(u => u.EmailConfirmado) ?? 0)</span>
+        </button>
+        <button class="filter-tab @(_filtro == "pendentes" ? "active" : "")" @onclick='() => _filtro = "pendentes"'>
+            Pendentes <span class="filter-count">@(usuarios?.Count(u => !u.EmailConfirmado) ?? 0)</span>
+        </button>
+    </div>
+
     <div class="table-container">
         <table class="data-table">
             <thead>
@@ -39,9 +51,9 @@
                 </tr>
             </thead>
             <tbody>
-                @if (usuarios != null && usuarios.Count > 0)
+                @if (UsuariosFiltrados.Count > 0)
                 {
-                    @foreach (var usuario in usuarios)
+                    @foreach (var usuario in UsuariosFiltrados)
                     {
                         <tr>
                             <td>
@@ -92,7 +104,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" class="no-data">Nenhum usuário encontrado</td>
+                        <td colspan="7" class="no-data">@(usuarios == null || usuarios.Count == 0 ? "Nenhum usuário encontrado" : "Nenhum usuário nesse filtro")</td>
                     </tr>
                 }
             </tbody>
@@ -193,6 +205,14 @@
     private bool mostrarModal = false;
     private bool editando = false;
     private bool isSalvando = false;
+    private string _filtro = "todos";
+
+    private List<Usuario> UsuariosFiltrados => (usuarios ?? new()).Where(u => _filtro switch
+    {
+        "ativos" => u.EmailConfirmado,
+        "pendentes" => !u.EmailConfirmado,
+        _ => true
+    }).ToList();
 
     protected override async Task OnInitializedAsync()
     {

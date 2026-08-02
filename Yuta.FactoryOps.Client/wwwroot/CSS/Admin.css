@@ -68,6 +68,50 @@
     background: #e2e8f0;
 }
 
+/* Abas de Filtro */
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+    border-color: #c7d2fe;
+    color: #475569;
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.filter-count {
+    font-size: 0.75rem;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: rgba(100, 116, 139, 0.12);
+}
+
+.filter-tab.active .filter-count {
+    background: rgba(255, 255, 255, 0.25);
+}
+
 /* Tabelas */
 .table-container {
     background: white;
@@ -500,6 +544,21 @@
 
 .main-layout[data-theme="dark"] .btn-secondary:hover {
     background: #453c60;
+}
+
+.main-layout[data-theme="dark"] .filter-tab {
+    background: #2e2941;
+    border-color: #403a56;
+    color: #948aac;
+}
+
+.main-layout[data-theme="dark"] .filter-tab:hover {
+    border-color: #524968;
+    color: #bdafd8;
+}
+
+.main-layout[data-theme="dark"] .filter-count {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .main-layout[data-theme="dark"] .table-container,
