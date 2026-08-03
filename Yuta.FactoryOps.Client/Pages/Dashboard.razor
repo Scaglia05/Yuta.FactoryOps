@@ -41,7 +41,12 @@
                 <div class="clock-time">@_now.ToString("HH:mm:ss")</div>
                 <div class="clock-date">@_now.ToString("ddd, dd/MM")</div>
             </div>
-            <div class="avatar">YU</div>
+            <div class="dropdown">
+                <div class="avatar" @onclick="ToggleAvatarMenu">YU</div>
+                <div class="dropdown-menu @(_avatarMenuOpen ? "open" : "")">
+                    <div class="dd-item" @onclick="Logout" style="color:var(--red2)">🚪 Sair</div>
+                </div>
+            </div>
         </div>
     </div>
 

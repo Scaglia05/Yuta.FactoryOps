@@ -9,6 +9,7 @@ public partial class Dashboard : IAsyncDisposable
     [Inject] private IFactoryOpsDataService FactoryOpsData { get; set; } = null!;
     [Inject] private IJSRuntime JS { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private Yuta.FactoryOps.Client.Security.ProvedorAutenticacaoJwt ProvedorAuth { get; set; } = null!;
 
     private const int MaxPts = 50;
 
@@ -192,6 +193,15 @@ public partial class Dashboard : IAsyncDisposable
 
     private bool _adminMenuOpen;
     private void ToggleAdminMenu() => _adminMenuOpen = !_adminMenuOpen;
+
+    private bool _avatarMenuOpen;
+    private void ToggleAvatarMenu() => _avatarMenuOpen = !_avatarMenuOpen;
+
+    private async Task Logout()
+    {
+        await ProvedorAuth.MarcarComoDeslogado();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
 
     private bool _mobileRightPanelOpen;
     private void ToggleMobileRightPanel() => _mobileRightPanelOpen = !_mobileRightPanelOpen;

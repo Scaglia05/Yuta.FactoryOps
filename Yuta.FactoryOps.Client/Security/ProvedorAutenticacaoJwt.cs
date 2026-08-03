@@ -51,6 +51,7 @@ namespace Yuta.FactoryOps.Client.Security
         public async Task MarcarComoAutenticado(string token)
         {
             await _js.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             var estadoAutenticado = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
             NotifyAuthenticationStateChanged(Task.FromResult(estadoAutenticado));
         }
